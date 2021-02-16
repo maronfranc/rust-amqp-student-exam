@@ -1,0 +1,22 @@
+[package]
+name = "exams"
+version = "0.1.0"
+authors = ["Máron <maron.franca@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+amiquip = "0.4.0"
+
+[[bin]]
+name = "exchange"
+path = "src/exchange.rs"
+
+[[bin]]
+name = "consumer"
+path = "src/consumer.rs"
+
+[[bin]]
+name = "emit"
+path = "src/emit.rs"
