@@ -2,5 +2,20 @@ curl --request POST \
 --url localhost:4001/v1/exam/start \
 --header 'content-type: application/json' \
 --data '{
-        "content": 111
+    "id": 1,
+    "content": "Content"
+}' | json_pp
+
+curl --request POST \
+--url localhost:4001/v1/exam/1/question/99 \
+--header 'content-type: application/json' \
+--data '{ 
+    "content": "Content"
+}' | json_pp
+
+curl --request POST \
+--url localhost:4001/v1/exam/1/finish \
+--header 'content-type: application/json' \
+--data '{ 
+    "content": "Content"
 }' | json_pp
