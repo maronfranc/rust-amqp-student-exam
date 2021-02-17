@@ -20,3 +20,7 @@ path = "src/consumer.rs"
 [[bin]]
 name = "emit"
 path = "src/emit.rs"
+
+[[bin]]
+name = "start_exam"
+path = "src/start_exam.rs"
