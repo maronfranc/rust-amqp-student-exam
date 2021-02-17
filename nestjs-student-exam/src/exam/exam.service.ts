@@ -13,4 +13,12 @@ export class ExamService {
   public async emitStartExam(examData: ExamDto): Promise<any> {
     return this.examQueueService.sendStartQueue(examData).toPromise();
   }
+
+  public async sendQuestionAnswer(questionAnswer: ExamDto): Promise<any> {
+    return this.examQueueService.sendQuestionAnswer(questionAnswer).toPromise();
+  }
+
+  public async finishExam(questionAnswer: ExamDto): Promise<any> {
+    return this.examQueueService.finishExam(questionAnswer).toPromise();
+  }
 }

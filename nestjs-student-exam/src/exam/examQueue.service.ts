@@ -4,31 +4,46 @@ import { Observable } from "rxjs";
 import { rabbitmqKeys } from "../common/Configuration";
 import { ExamDto } from "./dto/Exam.dto";
 
-export const EXAM_INJECT_TOKEN = "EXAM_INJECT_TOKEN";
-export const START_EXAM_QUEUE = "q_start_exam";
-export const patternStartExam = "start_exam";
+const INJECT_TOKEN_EXAM = "INJECT_TOKEN_EXAM";
+const QUEUE_PATTERN_EXAM = "q_pattern_exam";
+const PATTERN_START_EXAM = "start_exam";
+const PATTERN_ANSWER_QUESTION = "answer_question";
+const PATTERN_FINISH_EXAM = "finish_exam";
 
 @Injectable()
 export class ExamQueueService {
-    public constructor(@Inject(EXAM_INJECT_TOKEN) private readonly client: ClientProxy) { }
+    public constructor(@Inject(INJECT_TOKEN_EXAM) private readonly client: ClientProxy) { }
 
     public sendStartQueue(examData: ExamDto): Observable<any> {
-        examData.routing_key = `r_exam_${examData.id}`;
+        return this.client.send(PATTERN_START_EXAM, examData);
+    }
 
-        return this.client.send(patternStartExam, examData);
+    public sendQuestionAnswer(questionAnswer: ExamDto): Observable<any> {
+        return this.client.send(PATTERN_ANSWER_QUESTION, questionAnswer);
+    }
+
+    public finishExam(examData: ExamDto): Observable<any> {
+        return this.client.send(PATTERN_FINISH_EXAM, examData);
     }
 }
 
 const { host, password, port, username, vhost } = rabbitmqKeys;
 
-export const examProducer: ClientProviderOptions = {
+const commonProducer: Readonly<ClientProviderOptions> = {
     transport: Transport.RMQ,
-    name: EXAM_INJECT_TOKEN,
+    name: INJECT_TOKEN_EXAM,
     options: {
         urls: [`amqp://${username}:${password}@${host}:${port}/${vhost}`],
-        queue: START_EXAM_QUEUE,
+    },
+};
+
+export const startExamProducer: ClientProviderOptions = {
+    ...commonProducer,
+    options: {
+        ...commonProducer.options,
+        queue: QUEUE_PATTERN_EXAM,
         queueOptions: {
             durable: true
         }
-    },
+    }
 };

@@ -15,22 +15,36 @@ export class ExamController {
     return true;
   }
 
-  @Post("question/:idQuestion/answer")
+  @Post(":idExam/question/:idQuestion")
   /** emit to specific exam queue */
-  public async answerQuestion(@Param("idQuestion", ParseIntPipe) idQuestion: number): Promise<any> {
-    return this.examService.getHello();
-  }
+  public async answerQuestion(@Param("idExam", ParseIntPipe) idExam: number, @Param("idQuestion", ParseIntPipe) idQuestion: number): Promise<any> {
+    const mockExamData: ExamDto = {
+      id: idExam,
+      content: "name",
+    }
 
-  @Get(":idExam/recover")
-  /** attempt to get exam data in queue */
-  public async recoverExam(@Param("idExam", ParseIntPipe) idExam: number): Promise<any> {
-    return this.examService.getHello();
+    void this.examService.sendQuestionAnswer(mockExamData);
+
+    return true;
   }
 
   @Post(":idExam/finish")
   /** emit event to start consumption and close queue */
   public async finishExam(@Param("idExam", ParseIntPipe) idExam: number): Promise<any> {
-    return this.examService.getHello();
+    const mockExamData: ExamDto = {
+      id: idExam,
+      content: "name",
+    }
+
+    void this.examService.finishExam(mockExamData);
+
+    return true;
   }
 
+  @Get(":idExam/recover")
+  /** attempt to get exam data in queue */
+  public async recoverExam(@Param("idExam", ParseIntPipe) idExam: number): Promise<any> {
+
+    return this.examService.getHello();
+  }
 }
