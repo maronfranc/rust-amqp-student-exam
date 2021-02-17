@@ -5,7 +5,7 @@ import { rabbitmqKeys } from "../common/Configuration";
 import { ExamDto } from "./dto/Exam.dto";
 
 const INJECT_TOKEN_EXAM = "INJECT_TOKEN_EXAM";
-const QUEUE_PATTERN_EXAM = "q_pattern_exam";
+const QUEUE_PATTERN_EXAM = "q_exam_pattern";
 const PATTERN_START_EXAM = "start_exam";
 const PATTERN_ANSWER_QUESTION = "answer_question";
 const PATTERN_FINISH_EXAM = "finish_exam";

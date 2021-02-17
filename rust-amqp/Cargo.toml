@@ -8,6 +8,8 @@ edition = "2018"
 
 [dependencies]
 amiquip = "0.4.0"
+serde = "1.0.123"
+serde_json = "1.0.62"
 
 [[bin]]
 name = "exchange"
@@ -22,5 +24,5 @@ name = "emit"
 path = "src/emit.rs"
 
 [[bin]]
-name = "start_exam"
-path = "src/start_exam.rs"
+name = "exam_pattern"
+path = "src/exam_pattern.rs"
