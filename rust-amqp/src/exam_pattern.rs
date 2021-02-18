@@ -88,12 +88,11 @@ fn answer_question(
         .unwrap();
 }
 
-fn finish_exam(
-    connection: &mut Connection,
-    exchange_name: &str,
-    routing_key: &str,
-    queue_name: &str,
-) {
+fn finish_exam(exchange_name: &str, routing_key: &str, queue_name: &str) {
+    let mut connection = match Connection::insecure_open(URL) {
+        Ok(conn) => conn,
+        Err(error) => panic!("Connection error: {:?}", error),
+    };
     let channel = connection.open_channel(None).unwrap();
     let queue = channel
         .queue_declare(
@@ -128,10 +127,13 @@ fn finish_exam(
             ..ConsumerOptions::default()
         })
         .unwrap();
-
+    let total_queue_messages = queue.declared_message_count().unwrap() as usize;
     for (i, message) in consumer.receiver().iter().enumerate() {
-        match message {
-            ConsumerMessage::Delivery(delivery) => {
+        match (i, message) {
+            (i, _message) if i + 1 == total_queue_messages => {
+                break;
+            }
+            (i, ConsumerMessage::Delivery(delivery)) => {
                 let body = String::from_utf8_lossy(&delivery.body);
                 println!("({:>3}) Received [{}]", i, body);
             }
@@ -141,6 +143,7 @@ fn finish_exam(
             }
         }
     }
+    connection.close().unwrap();
 }
 
 fn main() {
@@ -186,7 +189,7 @@ fn main() {
                         start_exam_data,
                     );
                 } else if start_exam_data.pattern == "finish_exam" {
-                    finish_exam(&mut connection, &exchange_name, &routing_key, &queue_name);
+                    finish_exam(&exchange_name, &routing_key, &queue_name);
                 }
             }
             other => {
