@@ -1,0 +1,1 @@
+export const MOCK_ID_STUDENT = 999;

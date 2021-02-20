@@ -1,50 +1,57 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post } from '@nestjs/common';
-import { ExamDto } from './dto/Exam.dto';
+import { Controller, Get, Param, ParseIntPipe, Post } from '@nestjs/common';
+import { BaseController } from '../library/Base.controller';
 import { ExamService } from './exam.service';
 
 @Controller("exam")
-export class ExamController {
-  constructor(private readonly examService: ExamService) { }
+export class ExamController extends BaseController {
+  constructor(private readonly examService: ExamService) {
+    super();
+  }
 
-  @Post("start")
-  public async startExam(@Body() body: ExamDto): Promise<any> {
-    const examData = body;
+  @Post(":idExam/start")
+  public async startExam(@Param("idExam", ParseIntPipe) idExam: number): Promise<any> {
+    const user = super.getUserFromToken();
 
-    void this.examService.emitStartExam(examData);
+    void this.examService.emitStartExam({
+      id_student: user.idStudent,
+      id_exam: idExam,
+    });
 
     return true;
   }
 
-  @Post(":idExam/question/:idQuestion")
-  /** emit to specific exam queue */
-  public async answerQuestion(@Param("idExam", ParseIntPipe) idExam: number, @Param("idQuestion", ParseIntPipe) idQuestion: number): Promise<any> {
-    const mockExamData: ExamDto = {
-      id: idExam,
-      content: "name",
-    }
+  @Post(":idExam/question/:idQuestion/answer/:idAnswer")
+  public async answerQuestion(
+    @Param("idExam", ParseIntPipe) idExam: number,
+    @Param("idQuestion", ParseIntPipe) idQuestion: number,
+    @Param("idAnswer", ParseIntPipe) idAnswer: number
+  ): Promise<any> {
+    const user = super.getUserFromToken();
 
-    void this.examService.sendQuestionAnswer(mockExamData);
+    void this.examService.sendQuestionAnswer({
+      id_exam: idExam,
+      id_question: idQuestion,
+      id_answer: idAnswer,
+      id_student: user.idStudent,
+    });
 
     return true;
   }
 
   @Post(":idExam/finish")
-  /** emit event to start consumption and close queue */
   public async finishExam(@Param("idExam", ParseIntPipe) idExam: number): Promise<any> {
-    const mockExamData: ExamDto = {
-      id: idExam,
-      content: "name",
-    }
+    const user = super.getUserFromToken();
 
-    void this.examService.finishExam(mockExamData);
+    void this.examService.finishExam({
+      id_exam: idExam,
+      id_student: user.idStudent,
+    });
 
     return true;
   }
 
   @Get(":idExam/recover")
-  /** attempt to get exam data in queue */
   public async recoverExam(@Param("idExam", ParseIntPipe) idExam: number): Promise<any> {
-
     return this.examService.getHello();
   }
 }

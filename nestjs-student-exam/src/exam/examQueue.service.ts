@@ -2,7 +2,9 @@ import { Inject, Injectable } from "@nestjs/common";
 import { ClientProviderOptions, ClientProxy, Transport } from "@nestjs/microservices";
 import { Observable } from "rxjs";
 import { rabbitmqKeys } from "../common/Configuration";
-import { ExamDto } from "./dto/Exam.dto";
+import { AnswerQuestionDto } from "./dto/Answer.dto";
+import { FinishExamDto } from "./dto/FinishExam.dto";
+import { StartExamDto } from "./dto/StartExam.dto";
 
 const INJECT_TOKEN_EXAM = "INJECT_TOKEN_EXAM";
 const QUEUE_PATTERN_EXAM = "q_exam_pattern";
@@ -14,16 +16,22 @@ const PATTERN_FINISH_EXAM = "finish_exam";
 export class ExamQueueService {
     public constructor(@Inject(INJECT_TOKEN_EXAM) private readonly client: ClientProxy) { }
 
-    public sendStartQueue(examData: ExamDto): Observable<any> {
-        return this.client.send(PATTERN_START_EXAM, examData);
+    public sendStartExam(startExamDto: StartExamDto): Observable<any> {
+        console.info("Client send: ", startExamDto)
+
+        return this.client.send(PATTERN_START_EXAM, startExamDto);
     }
 
-    public sendQuestionAnswer(questionAnswer: ExamDto): Observable<any> {
-        return this.client.send(PATTERN_ANSWER_QUESTION, questionAnswer);
+    public sendQuestionAnswer(answerQuestionDto: AnswerQuestionDto): Observable<any> {
+        console.info("Client send: ", answerQuestionDto)
+
+        return this.client.send(PATTERN_ANSWER_QUESTION, answerQuestionDto);
     }
 
-    public finishExam(examData: ExamDto): Observable<any> {
-        return this.client.send(PATTERN_FINISH_EXAM, examData);
+    public sendfinishExam(finishExamDto: FinishExamDto): Observable<any> {
+        console.info("Client send: ", finishExamDto)
+
+        return this.client.send(PATTERN_FINISH_EXAM, finishExamDto);
     }
 }
 
