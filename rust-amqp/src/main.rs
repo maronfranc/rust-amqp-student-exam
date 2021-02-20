@@ -37,12 +37,13 @@ fn main() {
         match message {
             ConsumerMessage::Delivery(delivery) => {
                 let body = String::from_utf8_lossy(&delivery.body);
-                let start_exam_data: dtos::start_exam::StartExam =
+                println!("{:#?}", body);
+                let start_exam_data: dtos::start_exam_dto::StartExamDto =
                     serde_json::from_str(&body).unwrap();
                 println!("{:#?}", start_exam_data);
                 let exchange_name = "e_exam";
-                let routing_key = format!("r_exam_{}", start_exam_data.data.id.to_string());
-                let queue_name = format!("q_exam_{}", start_exam_data.data.id.to_string());
+                let routing_key = format!("r_exam_{}", start_exam_data.data.id_exam.to_string());
+                let queue_name = format!("q_exam_{}", start_exam_data.data.id_exam.to_string());
                 if start_exam_data.pattern == "start_exam" {
                     patterns::create_queue::create_queue(
                         &mut connection,
