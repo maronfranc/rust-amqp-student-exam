@@ -12,7 +12,7 @@ pub fn answer_question(
     connection: &mut Connection,
     exchange_name: &str,
     routing_key: &str,
-    answer_question: dtos::start_exam::StartExam,
+    answer_question: dtos::start_exam_dto::StartExamDto,
 ) {
     let channel = connection.open_channel(None).unwrap();
     let exchange = channel
