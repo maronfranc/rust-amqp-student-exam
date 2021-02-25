@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct StartExamDto {
+pub struct FinishExam {
     pub pattern: String,
     pub data: Data,
 }

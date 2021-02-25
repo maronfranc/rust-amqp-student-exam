@@ -5,15 +5,13 @@ use amiquip::Publish;
 use amiquip::{Connection, ExchangeType};
 use serde_json::to_vec;
 
-use crate::dtos;
+use crate::dtos::answer_question_dto::AnswerQuestionDto;
 const PERSISTENT_MESSAGE: u8 = 2;
 
-pub fn answer_question(
-    connection: &mut Connection,
-    exchange_name: &str,
-    routing_key: &str,
-    answer_question: dtos::start_exam_dto::StartExamDto,
-) {
+pub fn answer_question(connection: &mut Connection, body: std::borrow::Cow<str>) {
+    let create_queue: AnswerQuestionDto = serde_json::from_str(&body).unwrap();
+    let exchange_name = "e_exam";
+    let routing_key = format!("r_exam_{}", create_queue.data.id_exam.to_string());
     let channel = connection.open_channel(None).unwrap();
     let exchange = channel
         .exchange_declare(
@@ -27,7 +25,7 @@ pub fn answer_question(
             },
         )
         .unwrap();
-    let buffer_answer_question = to_vec(&answer_question).unwrap();
+    let buffer_answer_question = to_vec(&create_queue).unwrap();
     exchange
         .publish(Publish::with_properties(
             &buffer_answer_question,

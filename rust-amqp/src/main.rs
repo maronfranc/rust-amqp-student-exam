@@ -37,29 +37,14 @@ fn main() {
         match message {
             ConsumerMessage::Delivery(delivery) => {
                 let body = String::from_utf8_lossy(&delivery.body);
-                println!("{:#?}", body);
-                let start_exam_data: dtos::start_exam_dto::StartExamDto =
+                let start_exam_data: dtos::pattern_dto::PatternDto =
                     serde_json::from_str(&body).unwrap();
-                println!("{:#?}", start_exam_data);
-                let exchange_name = "e_exam";
-                let routing_key = format!("r_exam_{}", start_exam_data.data.id_exam.to_string());
-                let queue_name = format!("q_exam_{}", start_exam_data.data.id_exam.to_string());
                 if start_exam_data.pattern == "start_exam" {
-                    patterns::create_queue::create_queue(
-                        &mut connection,
-                        &exchange_name,
-                        &routing_key,
-                        &queue_name,
-                    );
+                    patterns::create_queue::create_queue(&mut connection, body);
                 } else if start_exam_data.pattern == "answer_question" {
-                    patterns::answer_question::answer_question(
-                        &mut connection,
-                        &exchange_name,
-                        &routing_key,
-                        start_exam_data,
-                    );
+                    patterns::answer_question::answer_question(&mut connection, body);
                 } else if start_exam_data.pattern == "finish_exam" {
-                    patterns::finish_exam::finish_exam(&exchange_name, &routing_key, &queue_name);
+                    patterns::finish_exam::finish_exam(body);
                 }
             }
             other => {
