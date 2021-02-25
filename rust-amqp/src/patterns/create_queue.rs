@@ -2,11 +2,17 @@ use amiquip::ExchangeDeclareOptions;
 use amiquip::FieldTable;
 use amiquip::QueueDeclareOptions;
 use amiquip::{Connection, ExchangeType};
+use sqlx::PgPool;
 
 use crate::dtos::start_exam_dto::StartExamDto;
 
-pub fn create_queue(connection: &mut Connection, body: std::borrow::Cow<str>) {
+pub fn create_queue(
+    connection: &mut Connection,
+    body: std::borrow::Cow<'_, str>,
+    pool: &mut PgPool,
+) {
     let create_queue: StartExamDto = serde_json::from_str(&body).unwrap();
+    println!("{:#?}", create_queue);
     let exchange_name = "e_exam";
     let queue_name = format!("q_exam_{}", create_queue.data.id_exam.to_string());
     let routing_key = format!("r_exam_{}", create_queue.data.id_exam.to_string());
@@ -37,4 +43,5 @@ pub fn create_queue(connection: &mut Connection, body: std::borrow::Cow<str>) {
     queue
         .bind(&exchange, routing_key, FieldTable::default())
         .unwrap();
+    channel.close().unwrap();
 }

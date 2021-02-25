@@ -3,13 +3,15 @@ use amiquip::ExchangeDeclareOptions;
 use amiquip::FieldTable;
 use amiquip::QueueDeclareOptions;
 use amiquip::{Connection, ConsumerMessage, ExchangeType};
+use sqlx::PgPool;
 
 use crate::dtos::finish_exam_dto::FinishExam;
 
 const URL: &str = "amqp://guest:guest@localhost:5672";
 
-pub fn finish_exam(body: std::borrow::Cow<str>) {
+pub fn finish_exam(body: std::borrow::Cow<str>, pool: &mut PgPool) {
     let finish_exam: FinishExam = serde_json::from_str(&body).unwrap();
+    println!("{:#?}", finish_exam);
     let exchange_name = "e_exam";
     let queue_name = format!("q_exam_{}", finish_exam.data.id_exam.to_string());
     let routing_key = format!("r_exam_{}", finish_exam.data.id_exam.to_string());

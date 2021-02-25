@@ -4,14 +4,20 @@ use amiquip::FieldTable;
 use amiquip::Publish;
 use amiquip::{Connection, ExchangeType};
 use serde_json::to_vec;
+use sqlx::PgPool;
 
 use crate::dtos::answer_question_dto::AnswerQuestionDto;
 const PERSISTENT_MESSAGE: u8 = 2;
 
-pub fn answer_question(connection: &mut Connection, body: std::borrow::Cow<str>) {
-    let create_queue: AnswerQuestionDto = serde_json::from_str(&body).unwrap();
+pub fn answer_question(
+    connection: &mut Connection,
+    body: std::borrow::Cow<str>,
+    pool: &mut PgPool,
+) {
+    let answer_question: AnswerQuestionDto = serde_json::from_str(&body).unwrap();
+    println!("{:#?}", answer_question);
     let exchange_name = "e_exam";
-    let routing_key = format!("r_exam_{}", create_queue.data.id_exam.to_string());
+    let routing_key = format!("r_exam_{}", answer_question.data.id_exam.to_string());
     let channel = connection.open_channel(None).unwrap();
     let exchange = channel
         .exchange_declare(
@@ -25,7 +31,7 @@ pub fn answer_question(connection: &mut Connection, body: std::borrow::Cow<str>)
             },
         )
         .unwrap();
-    let buffer_answer_question = to_vec(&create_queue).unwrap();
+    let buffer_answer_question = to_vec(&answer_question).unwrap();
     exchange
         .publish(Publish::with_properties(
             &buffer_answer_question,
@@ -33,4 +39,5 @@ pub fn answer_question(connection: &mut Connection, body: std::borrow::Cow<str>)
             AmqpProperties::default().with_delivery_mode(PERSISTENT_MESSAGE),
         ))
         .unwrap();
+    channel.close().unwrap();
 }

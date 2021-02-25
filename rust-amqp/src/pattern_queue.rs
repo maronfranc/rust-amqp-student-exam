@@ -1,7 +1,8 @@
 use amiquip::{Connection, ConsumerMessage, ConsumerOptions, FieldTable, QueueDeclareOptions};
+use sqlx::PgPool;
 
 use crate::{dtos, patterns};
-pub fn pattern_queue(connection: &mut Connection) {
+pub fn pattern_queue(connection: &mut Connection, pool: &mut PgPool) {
     let channel = connection.open_channel(None).unwrap();
     let queue = channel
         .queue_declare(
