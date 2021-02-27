@@ -2,7 +2,8 @@ use amiquip::{Connection, ConsumerMessage, ConsumerOptions, FieldTable, QueueDec
 use sqlx::PgPool;
 
 use crate::{dtos, patterns};
-pub fn pattern_queue(connection: &mut Connection, pool: &mut PgPool) {
+
+pub async fn pattern_queue(connection: &mut Connection, pool: &mut PgPool) {
     let channel = connection.open_channel(None).unwrap();
     let queue = channel
         .queue_declare(
@@ -31,7 +32,7 @@ pub fn pattern_queue(connection: &mut Connection, pool: &mut PgPool) {
                     serde_json::from_str(&body).unwrap();
                 println!("{:#?}", start_exam_data);
                 if start_exam_data.pattern == "start_exam" {
-                    patterns::create_queue::create_queue(connection, body, pool);
+                    patterns::start_exam::start_exam(connection, body, pool).await;
                 } else if start_exam_data.pattern == "answer_question" {
                     patterns::answer_question::answer_question(connection, body, pool);
                 } else if start_exam_data.pattern == "finish_exam" {

@@ -1,18 +1,18 @@
-use amiquip::ExchangeDeclareOptions;
-use amiquip::FieldTable;
-use amiquip::QueueDeclareOptions;
-use amiquip::{Connection, ExchangeType};
+use amiquip::{Connection, ExchangeDeclareOptions, ExchangeType, FieldTable, QueueDeclareOptions};
 use sqlx::PgPool;
 
 use crate::dtos::start_exam_dto::StartExamDto;
 
-pub fn create_queue(
+pub async fn start_exam(
     connection: &mut Connection,
     body: std::borrow::Cow<'_, str>,
     pool: &mut PgPool,
 ) {
-    let create_queue: StartExamDto = serde_json::from_str(&body).unwrap();
-    println!("{:#?}", create_queue);
+    let start_exam_dto: StartExamDto = serde_json::from_str(&body).unwrap();
+    create_queue(connection, &start_exam_dto);
+}
+
+fn create_queue(connection: &mut Connection, create_queue: &StartExamDto) {
     let exchange_name = "e_exam";
     let queue_name = format!("q_exam_{}", create_queue.data.id_exam.to_string());
     let routing_key = format!("r_exam_{}", create_queue.data.id_exam.to_string());
