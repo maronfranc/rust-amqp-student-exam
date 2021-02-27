@@ -2,7 +2,8 @@ version: "3"
 
 services:
     rabbitmq:
-        image: rabbitmq-3-management
+        container_name: amqp-exam
+        image: rabbitmq:3-management
         environment:
             RABBITMQ_DEFAULT_USER: guest
             RABBITMQ_DEFAULT_PASS: guest
@@ -12,3 +13,12 @@ services:
             - "15672:15672"
         volumes:
             - ./rabbitmq:/var/lib/rabbitmq
+    postgresql:
+        container_name: postgresql-exam
+        image: postgres:11.6
+        ports:
+            - 5432:5432
+        environment:
+            POSTGRES_PASSWORD: pass123
+        volumes:
+            - ./postgresql:/var/lib/postgresql/data
