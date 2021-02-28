@@ -8,6 +8,6 @@ pub struct FinishExam {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Data {
-    pub id_student: u64,
-    pub id_exam: u64,
+    pub id_student: i32,
+    pub id_exam: i32,
 }

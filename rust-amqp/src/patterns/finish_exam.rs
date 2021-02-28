@@ -1,8 +1,7 @@
-use amiquip::ConsumerOptions;
-use amiquip::ExchangeDeclareOptions;
-use amiquip::FieldTable;
-use amiquip::QueueDeclareOptions;
-use amiquip::{Connection, ConsumerMessage, ExchangeType};
+use amiquip::{
+    Connection, ConsumerMessage, ConsumerOptions, ExchangeDeclareOptions, ExchangeType, FieldTable,
+    QueueDeclareOptions,
+};
 use sqlx::PgPool;
 
 use crate::dtos::finish_exam_dto::FinishExam;

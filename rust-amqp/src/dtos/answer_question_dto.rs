@@ -8,8 +8,8 @@ pub struct AnswerQuestionDto {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Data {
-    pub id_student: u64,
-    pub id_exam: u64,
-    pub id_question: u64,
-    pub id_answer: u64,
+    pub id_student: i32,
+    pub id_exam: i32,
+    pub id_question: i32,
+    pub id_answer: i32,
 }

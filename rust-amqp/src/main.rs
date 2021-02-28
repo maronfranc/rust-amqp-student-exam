@@ -9,6 +9,7 @@ mod dtos;
 mod models;
 mod pattern_queue;
 mod patterns;
+mod repositories;
 
 #[tokio::main]
 async fn main() {

@@ -1,12 +1,11 @@
-use amiquip::AmqpProperties;
-use amiquip::ExchangeDeclareOptions;
-use amiquip::FieldTable;
-use amiquip::Publish;
-use amiquip::{Connection, ExchangeType};
+use amiquip::{
+    AmqpProperties, Connection, ExchangeDeclareOptions, ExchangeType, FieldTable, Publish,
+};
 use serde_json::to_vec;
 use sqlx::PgPool;
 
 use crate::dtos::answer_question_dto::AnswerQuestionDto;
+
 const PERSISTENT_MESSAGE: u8 = 2;
 
 pub fn answer_question(
