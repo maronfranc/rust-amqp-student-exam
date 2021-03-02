@@ -37,7 +37,7 @@ pub async fn pattern_queue(connection: &mut Connection, pool: &mut PgPool) {
                 } else if start_exam_data.pattern == "answer_question" {
                     patterns::answer_question::answer_question(connection, body, pool);
                 } else if start_exam_data.pattern == "finish_exam" {
-                    patterns::finish_exam::finish_exam(body, pool);
+                    patterns::finish_exam::finish_exam(body, pool).await;
                 }
             }
             other => {

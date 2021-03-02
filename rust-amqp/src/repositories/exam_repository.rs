@@ -1,7 +1,7 @@
 use crate::dtos::exam_dto::{AnswerDto, ExamDto, QuestionDto};
 #[allow(unused_imports)]
 use crate::models::{AnswerModel, ExamModel, QuestionModel};
-use sqlx::PgPool;
+use sqlx::{postgres::PgDone, PgPool};
 
 pub async fn find_exam_template_by_id(pool: &PgPool, id_exam: i32) -> ExamDto {
     let exam = sqlx::query_file_as!(ExamModel, "src/repositories/sql/exam_by_id.sql", id_exam)
@@ -45,4 +45,14 @@ pub async fn find_exam_template_by_id(pool: &PgPool, id_exam: i32) -> ExamDto {
         description: exam.description,
         questions: questions_dto,
     }
+}
+
+pub async fn insert(pool: &PgPool, id_exam: i32, id_student: i32) -> Result<PgDone, sqlx::Error> {
+    sqlx::query_file!(
+        "src/repositories/sql/insert_student_exam.sql",
+        id_student,
+        id_exam
+    )
+    .execute(pool)
+    .await
 }

@@ -1,15 +1,16 @@
 use amiquip::{
     Connection, ConsumerMessage, ConsumerOptions, ExchangeDeclareOptions, ExchangeType, FieldTable,
-    QueueDeclareOptions,
+    QueueDeclareOptions, QueueDeleteOptions,
 };
 use sqlx::PgPool;
 
 use crate::dtos::answer_question_dto::AnswerQuestionData;
 use crate::dtos::finish_exam_dto::FinishExamDto;
+use crate::repositories::answer_repository;
 
 const URL: &str = "amqp://guest:guest@localhost:5672";
 
-pub fn finish_exam(body: std::borrow::Cow<str>, pool: &mut PgPool) {
+pub async fn finish_exam(body: std::borrow::Cow<'_, str>, pool: &mut PgPool) {
     let finish_exam: FinishExamDto = serde_json::from_str(&body).unwrap();
     println!("{:#?}", finish_exam);
     let exchange_name = "e_exam";
@@ -56,14 +57,12 @@ pub fn finish_exam(body: std::borrow::Cow<str>, pool: &mut PgPool) {
     let total_queue_messages = queue.declared_message_count().unwrap() as usize;
     for (i, message) in consumer.receiver().iter().enumerate() {
         match (i, message) {
-            (i, _message) if i + 1 == total_queue_messages => {
+            (i, _message) if i == total_queue_messages => {
                 break;
             }
             (i, ConsumerMessage::Delivery(delivery)) => {
-                let answer_result: Result<AnswerQuestionData, serde_json::Error> =
-                    serde_json::from_slice(&delivery.body);
-                let answer = answer_result.unwrap();
-                println!("{:#?}", answer);
+                let answer: AnswerQuestionData = serde_json::from_slice(&delivery.body).unwrap();
+                answer_repository::insert(&pool, &answer).await.unwrap();
             }
             other => {
                 println!("Consumer ended: {:?}", other);

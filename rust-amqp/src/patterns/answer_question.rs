@@ -16,7 +16,10 @@ pub fn answer_question(
     let answer_question: AnswerQuestionDto = serde_json::from_str(&body).unwrap();
     println!("{:#?}", answer_question);
     let exchange_name = "e_exam";
-    let routing_key = format!("r_exam_{}", answer_question.data.id_exam.to_string());
+    let routing_key = format!(
+        "r_exam_{}",
+        answer_question.data.id_student_exam.to_string(),
+    );
     let channel = connection.open_channel(None).unwrap();
     let exchange = channel
         .exchange_declare(

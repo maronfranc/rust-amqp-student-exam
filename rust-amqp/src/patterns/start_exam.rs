@@ -96,6 +96,13 @@ pub async fn start_exam(
 ) {
     let start_exam_dto: StartExamDto = serde_json::from_str(&body).unwrap();
     let (queue_name, exchange_name, routing_key) = deserialized_data_names(&start_exam_dto);
+    exam_repository::insert(
+        &pool,
+        start_exam_dto.data.id_exam,
+        start_exam_dto.data.id_student,
+    )
+    .await
+    .unwrap();
     create_exam_queue(connection, queue_name, exchange_name, routing_key);
     rpc(&delivery, &channel, &pool, &start_exam_dto)
         .await
