@@ -37,9 +37,10 @@ pub async fn rpc(
         }
     };
     let exam = exam_repository::find_exam_template_by_id(&pool, start_exam_dto.data.id_exam).await;
+    let buffer_exam = serde_json::to_vec(&exam).unwrap();
     exchange
         .publish(Publish::with_properties(
-            serde_json::to_string(&exam).unwrap().as_bytes(),
+            &buffer_exam,
             reply_to,
             AmqpProperties::default()
                 .with_correlation_id(corr_id)

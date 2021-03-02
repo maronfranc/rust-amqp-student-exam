@@ -4,12 +4,13 @@ use amiquip::{
 };
 use sqlx::PgPool;
 
-use crate::dtos::finish_exam_dto::FinishExam;
+use crate::dtos::answer_question_dto::AnswerQuestionData;
+use crate::dtos::finish_exam_dto::FinishExamDto;
 
 const URL: &str = "amqp://guest:guest@localhost:5672";
 
 pub fn finish_exam(body: std::borrow::Cow<str>, pool: &mut PgPool) {
-    let finish_exam: FinishExam = serde_json::from_str(&body).unwrap();
+    let finish_exam: FinishExamDto = serde_json::from_str(&body).unwrap();
     println!("{:#?}", finish_exam);
     let exchange_name = "e_exam";
     let queue_name = format!("q_exam_{}", finish_exam.data.id_exam.to_string());
@@ -59,8 +60,10 @@ pub fn finish_exam(body: std::borrow::Cow<str>, pool: &mut PgPool) {
                 break;
             }
             (i, ConsumerMessage::Delivery(delivery)) => {
-                let body = String::from_utf8_lossy(&delivery.body);
-                println!("({:>3}) Received [{}]", i, body);
+                let answer_result: Result<AnswerQuestionData, serde_json::Error> =
+                    serde_json::from_slice(&delivery.body);
+                let answer = answer_result.unwrap();
+                println!("{:#?}", answer);
             }
             other => {
                 println!("Consumer ended: {:?}", other);

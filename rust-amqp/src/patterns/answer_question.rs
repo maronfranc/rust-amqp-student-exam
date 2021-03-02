@@ -1,7 +1,7 @@
 use amiquip::{
     AmqpProperties, Connection, ExchangeDeclareOptions, ExchangeType, FieldTable, Publish,
 };
-use serde_json::to_vec;
+use serde_json;
 use sqlx::PgPool;
 
 use crate::dtos::answer_question_dto::AnswerQuestionDto;
@@ -30,7 +30,7 @@ pub fn answer_question(
             },
         )
         .unwrap();
-    let buffer_answer_question = to_vec(&answer_question).unwrap();
+    let buffer_answer_question = serde_json::to_vec(&answer_question.data).unwrap();
     exchange
         .publish(Publish::with_properties(
             &buffer_answer_question,

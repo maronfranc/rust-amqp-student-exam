@@ -3,11 +3,11 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Debug)]
 pub struct AnswerQuestionDto {
     pub pattern: String,
-    pub data: Data,
+    pub data: AnswerQuestionData,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Data {
+pub struct AnswerQuestionData {
     pub id_student: i32,
     pub id_exam: i32,
     pub id_question: i32,
