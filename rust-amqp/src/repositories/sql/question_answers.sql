@@ -1,0 +1,1 @@
+SELECT id, content FROM answers WHERE id_question = $1;
