@@ -1,21 +1,60 @@
-use amiquip::{Connection, ExchangeDeclareOptions, ExchangeType, FieldTable, QueueDeclareOptions};
-use sqlx::PgPool;
+use amiquip::{
+    AmqpProperties, Channel, Connection, Delivery, Exchange, ExchangeDeclareOptions, ExchangeType,
+    FieldTable, Publish, QueueDeclareOptions,
+};
 
 use crate::dtos::start_exam_dto::StartExamDto;
+use crate::repositories::exam_repository;
+use sqlx::PgPool;
 
-pub async fn start_exam(
-    connection: &mut Connection,
-    body: std::borrow::Cow<'_, str>,
-    pool: &mut PgPool,
-) {
-    let start_exam_dto: StartExamDto = serde_json::from_str(&body).unwrap();
-    create_queue(connection, &start_exam_dto);
+const RPC_ERROR: &str = "Received delivery without reply_to or correlation_id";
+const RPC_SUCCESS: &str = "Exam data publish to reply-to queue";
+const NON_PERSISTENT_MESSAGE: u8 = 1;
+
+pub fn deserialized_data_names(start_exam_dto: &StartExamDto) -> (String, String, String) {
+    let queue_name = format!("q_exam_{}", start_exam_dto.data.id_exam.to_string());
+    let exchange_name = String::from("e_exam");
+    let routing_key = format!("r_exam_{}", start_exam_dto.data.id_exam.to_string());
+
+    return (queue_name, exchange_name, routing_key);
 }
 
-fn create_queue(connection: &mut Connection, create_queue: &StartExamDto) {
-    let exchange_name = "e_exam";
-    let queue_name = format!("q_exam_{}", create_queue.data.id_exam.to_string());
-    let routing_key = format!("r_exam_{}", create_queue.data.id_exam.to_string());
+pub async fn rpc(
+    delivery: &Delivery,
+    channel: &Channel,
+    pool: &PgPool,
+    start_exam_dto: &StartExamDto,
+) -> Result<&'static str, &'static str> {
+    let exchange = Exchange::direct(&channel);
+    let (reply_to, corr_id) = match (
+        delivery.properties.reply_to(),
+        delivery.properties.correlation_id(),
+    ) {
+        (Some(r), Some(c)) => (r.clone(), c.clone()),
+        _ => {
+            println!("received delivery without reply_to or correlation_id");
+            return Err(RPC_ERROR);
+        }
+    };
+    let exam = exam_repository::find_exam_template_by_id(&pool, start_exam_dto.data.id_exam).await;
+    exchange
+        .publish(Publish::with_properties(
+            serde_json::to_string(&exam).unwrap().as_bytes(),
+            reply_to,
+            AmqpProperties::default()
+                .with_correlation_id(corr_id)
+                .with_delivery_mode(NON_PERSISTENT_MESSAGE),
+        ))
+        .unwrap();
+    Ok(RPC_SUCCESS)
+}
+
+fn create_exam_queue(
+    connection: &mut Connection,
+    queue_name: String,
+    exchange_name: String,
+    routing_key: String,
+) {
     let channel = connection.open_channel(None).unwrap();
     let queue = channel
         .queue_declare(
@@ -43,5 +82,21 @@ fn create_queue(connection: &mut Connection, create_queue: &StartExamDto) {
     queue
         .bind(&exchange, routing_key, FieldTable::default())
         .unwrap();
+
     channel.close().unwrap();
+}
+
+pub async fn start_exam(
+    connection: &mut Connection,
+    channel: &Channel,
+    pool: &PgPool,
+    delivery: &Delivery,
+    body: std::borrow::Cow<'_, str>,
+) {
+    let start_exam_dto: StartExamDto = serde_json::from_str(&body).unwrap();
+    let (queue_name, exchange_name, routing_key) = deserialized_data_names(&start_exam_dto);
+    create_exam_queue(connection, queue_name, exchange_name, routing_key);
+    rpc(&delivery, &channel, &pool, &start_exam_dto)
+        .await
+        .unwrap();
 }

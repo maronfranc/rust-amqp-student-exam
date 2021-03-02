@@ -32,7 +32,8 @@ pub async fn pattern_queue(connection: &mut Connection, pool: &mut PgPool) {
                     serde_json::from_str(&body).unwrap();
                 println!("{:#?}", start_exam_data);
                 if start_exam_data.pattern == "start_exam" {
-                    patterns::start_exam::start_exam(connection, body, pool).await;
+                    patterns::start_exam::start_exam(connection, &channel, &pool, &delivery, body)
+                        .await;
                 } else if start_exam_data.pattern == "answer_question" {
                     patterns::answer_question::answer_question(connection, body, pool);
                 } else if start_exam_data.pattern == "finish_exam" {
