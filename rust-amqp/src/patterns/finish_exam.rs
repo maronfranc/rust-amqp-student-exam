@@ -3,20 +3,20 @@ use amiquip::{
     QueueDeclareOptions, QueueDeleteOptions,
 };
 use sqlx::PgPool;
+use std::env::var;
 
 use crate::dtos::answer_question_dto::AnswerQuestionData;
 use crate::dtos::finish_exam_dto::FinishExamDto;
 use crate::repositories::answer_repository;
 
-const URL: &str = "amqp://guest:guest@localhost:5672";
-
 pub async fn finish_exam(body: std::borrow::Cow<'_, str>, pool: &mut PgPool) {
+    let amqp_url: String = var("AMQP_URL").expect("AMQP_URL is not set");
     let finish_exam: FinishExamDto = serde_json::from_str(&body).unwrap();
     println!("{:#?}", finish_exam);
     let exchange_name = "e_exam";
     let queue_name = format!("q_exam_{}", finish_exam.data.id_exam.to_string());
     let routing_key = format!("r_exam_{}", finish_exam.data.id_exam.to_string());
-    let mut connection = match Connection::insecure_open(URL) {
+    let mut connection = match Connection::insecure_open(&amqp_url) {
         Ok(conn) => conn,
         Err(error) => panic!("Connection error: {:?}", error),
     };
