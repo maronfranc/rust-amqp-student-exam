@@ -55,14 +55,21 @@ pub async fn finish_exam(body: std::borrow::Cow<'_, str>, pool: &mut PgPool) {
         })
         .unwrap();
     let total_queue_messages = queue.declared_message_count().unwrap() as usize;
-    for (i, message) in consumer.receiver().iter().enumerate() {
-        match (i, message) {
-            (i, _message) if i == total_queue_messages => {
-                break;
-            }
-            (i, ConsumerMessage::Delivery(delivery)) => {
-                let answer: AnswerQuestionData = serde_json::from_slice(&delivery.body).unwrap();
+    for (ii, message) in consumer.receiver().iter().enumerate() {
+        match (ii, message) {
+            (ii, ConsumerMessage::Delivery(message)) => {
+                let answer: AnswerQuestionData = serde_json::from_slice(&message.body).unwrap();
                 answer_repository::insert(&pool, &answer).await.unwrap();
+
+                if ii + 1 == total_queue_messages {
+                    queue
+                        .delete(QueueDeleteOptions {
+                            if_unused: false,
+                            if_empty: true,
+                        })
+                        .unwrap();
+                    break;
+                }
             }
             other => {
                 println!("Consumer ended: {:?}", other);
