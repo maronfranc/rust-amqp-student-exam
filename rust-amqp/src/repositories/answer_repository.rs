@@ -1,6 +1,7 @@
 use sqlx::{postgres::PgDone, PgPool};
 
 use crate::dtos::answer_question_dto::AnswerQuestionData;
+use crate::models::AnswerModel;
 
 pub async fn insert(pool: &PgPool, answer: &AnswerQuestionData) -> Result<PgDone, sqlx::Error> {
     sqlx::query_file!(
@@ -11,5 +12,18 @@ pub async fn insert(pool: &PgPool, answer: &AnswerQuestionData) -> Result<PgDone
         answer.id_student_exam
     )
     .execute(pool)
+    .await
+}
+
+pub async fn find_answers_by_question_id(
+    pool: &PgPool,
+    id_question: i32,
+) -> Result<Vec<AnswerModel>, sqlx::Error> {
+    sqlx::query_file_as!(
+        AnswerModel,
+        "src/repositories/sql/question_answers.sql",
+        id_question,
+    )
+    .fetch_all(pool)
     .await
 }

@@ -10,6 +10,7 @@ mod models;
 mod pattern_queue;
 mod patterns;
 mod repositories;
+mod services;
 
 #[tokio::main]
 async fn main() {

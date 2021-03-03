@@ -5,6 +5,7 @@ use amiquip::{
 
 use crate::dtos::start_exam_dto::StartExamDto;
 use crate::repositories::exam_repository;
+use crate::services::exam_service;
 use sqlx::PgPool;
 
 const RPC_ERROR: &str = "Received delivery without reply_to or correlation_id";
@@ -36,7 +37,7 @@ pub async fn rpc(
             return Err(RPC_ERROR);
         }
     };
-    let exam = exam_repository::find_exam_template_by_id(&pool, start_exam_dto.data.id_exam).await;
+    let exam = exam_service::find_exam_template_by_id(&pool, start_exam_dto.data.id_exam).await;
     let buffer_exam = serde_json::to_vec(&exam).unwrap();
     exchange
         .publish(Publish::with_properties(
