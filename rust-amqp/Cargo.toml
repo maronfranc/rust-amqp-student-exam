@@ -23,3 +23,7 @@ path = "src/main.rs"
 [[bin]]
 name = "migrations"
 path = "src/migrations.rs"
+
+[[bin]]
+name = "seed"
+path = "src/seed.rs"
