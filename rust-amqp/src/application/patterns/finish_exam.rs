@@ -5,9 +5,9 @@ use amiquip::{
 use sqlx::PgPool;
 use std::env::var;
 
-use crate::dtos::answer_question_dto::AnswerQuestionData;
-use crate::dtos::finish_exam_dto::FinishExamDto;
-use crate::repositories::answer_repository;
+use crate::application::dtos::answer_question_dto::AnswerQuestionData;
+use crate::application::dtos::finish_exam_dto::FinishExamDto;
+use crate::infrastructure::repositories::answer_repository;
 
 pub async fn finish_exam(body: std::borrow::Cow<'_, str>, pool: &mut PgPool) {
     let amqp_url: String = var("AMQP_URL").expect("AMQP_URL is not set");

@@ -1,7 +1,7 @@
 use amiquip::{Connection, ConsumerMessage, ConsumerOptions, FieldTable, QueueDeclareOptions};
 use sqlx::PgPool;
 
-use crate::{dtos, patterns};
+use crate::application::{dtos, patterns};
 
 pub async fn pattern_queue(connection: &mut Connection, pool: &mut PgPool) {
     let channel = connection.open_channel(None).unwrap();
@@ -28,15 +28,15 @@ pub async fn pattern_queue(connection: &mut Connection, pool: &mut PgPool) {
         match message {
             ConsumerMessage::Delivery(delivery) => {
                 let body = String::from_utf8_lossy(&delivery.body);
-                let start_exam_data: dtos::pattern_dto::PatternDto =
+                let pattern_dto: dtos::pattern_dto::PatternDto =
                     serde_json::from_str(&body).unwrap();
-                println!("{:#?}", start_exam_data);
-                if start_exam_data.pattern == "start_exam" {
+                println!("{:#?}", pattern_dto);
+                if pattern_dto.pattern == "start_exam" {
                     patterns::start_exam::start_exam(connection, &channel, &pool, &delivery, body)
                         .await;
-                } else if start_exam_data.pattern == "answer_question" {
+                } else if pattern_dto.pattern == "answer_question" {
                     patterns::answer_question::answer_question(connection, body, pool);
-                } else if start_exam_data.pattern == "finish_exam" {
+                } else if pattern_dto.pattern == "finish_exam" {
                     patterns::finish_exam::finish_exam(body, pool).await;
                 }
             }

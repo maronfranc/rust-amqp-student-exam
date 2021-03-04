@@ -4,7 +4,7 @@ use amiquip::{
 use serde_json;
 use sqlx::PgPool;
 
-use crate::dtos::answer_question_dto::AnswerQuestionDto;
+use crate::application::dtos::answer_question_dto::AnswerQuestionDto;
 
 const PERSISTENT_MESSAGE: u8 = 2;
 

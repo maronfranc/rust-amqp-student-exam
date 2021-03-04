@@ -1,10 +1,10 @@
 use sqlx::{postgres::PgDone, PgPool};
 
-use crate::models::ExamModel;
+use crate::infrastructure::models::ExamModel;
 
 pub async fn insert(pool: &PgPool, id_exam: i32, id_student: i32) -> Result<PgDone, sqlx::Error> {
     sqlx::query_file!(
-        "src/repositories/sql/insert_student_exam.sql",
+        "src/infrastructure/repositories/sql/insert_student_exam.sql",
         id_student,
         id_exam
     )
@@ -13,7 +13,11 @@ pub async fn insert(pool: &PgPool, id_exam: i32, id_student: i32) -> Result<PgDo
 }
 
 pub async fn find_by_id(pool: &PgPool, id_exam: i32) -> Result<ExamModel, sqlx::Error> {
-    sqlx::query_file_as!(ExamModel, "src/repositories/sql/exam_by_id.sql", id_exam)
-        .fetch_one(pool)
-        .await
+    sqlx::query_file_as!(
+        ExamModel,
+        "src/infrastructure/repositories/sql/exam_by_id.sql",
+        id_exam
+    )
+    .fetch_one(pool)
+    .await
 }

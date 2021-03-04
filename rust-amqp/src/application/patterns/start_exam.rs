@@ -3,9 +3,9 @@ use amiquip::{
     FieldTable, Publish, QueueDeclareOptions,
 };
 
-use crate::dtos::start_exam_dto::StartExamDto;
-use crate::repositories::exam_repository;
-use crate::services::exam_service;
+use crate::application::dtos::start_exam_dto::StartExamDto;
+use crate::domain::services::exam_service;
+use crate::infrastructure::repositories::exam_repository;
 use sqlx::PgPool;
 
 const RPC_ERROR: &str = "Received delivery without reply_to or correlation_id";

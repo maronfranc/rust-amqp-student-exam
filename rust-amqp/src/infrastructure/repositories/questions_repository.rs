@@ -1,6 +1,6 @@
 use sqlx::PgPool;
 
-use crate::models::QuestionModel;
+use crate::infrastructure::models::QuestionModel;
 
 pub async fn find_questions_by_exam_id(
     pool: &PgPool,
@@ -8,7 +8,7 @@ pub async fn find_questions_by_exam_id(
 ) -> Result<Vec<QuestionModel>, sqlx::Error> {
     sqlx::query_file_as!(
         QuestionModel,
-        "src/repositories/sql/exam_questions.sql",
+        "src/infrastructure/repositories/sql/exam_questions.sql",
         id_exam,
     )
     .fetch_all(pool)

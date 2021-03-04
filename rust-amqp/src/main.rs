@@ -1,9 +1,6 @@
-mod dtos;
-mod models;
-mod pattern_queue;
-mod patterns;
-mod repositories;
-mod services;
+mod application;
+mod domain;
+mod infrastructure;
 
 use amiquip::Connection;
 use sqlx;
@@ -25,7 +22,7 @@ async fn main() {
         Err(error) => panic!("Connection error: {:?}", error),
     };
 
-    pattern_queue::pattern_queue(&mut connection, &mut pool).await;
+    application::pattern_queue::pattern_queue(&mut connection, &mut pool).await;
 
     connection.close().unwrap();
 }

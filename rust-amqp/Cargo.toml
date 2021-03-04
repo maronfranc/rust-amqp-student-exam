@@ -22,8 +22,8 @@ path = "src/main.rs"
 
 [[bin]]
 name = "migrations"
-path = "src/migrations.rs"
+path = "src/infrastructure/database/migrations.rs"
 
 [[bin]]
 name = "seed"
-path = "src/seed.rs"
+path = "src/infrastructure/database/seed.rs"

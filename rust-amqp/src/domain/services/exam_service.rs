@@ -1,7 +1,9 @@
 use sqlx::PgPool;
 
-use crate::dtos::exam_dto::{AnswerDto, ExamDto, QuestionDto};
-use crate::repositories::{answer_repository, exam_repository, questions_repository};
+use crate::application::dtos::exam_dto::{AnswerDto, ExamDto, QuestionDto};
+use crate::infrastructure::repositories::{
+    answer_repository, exam_repository, questions_repository,
+};
 
 pub async fn find_exam_template_by_id(pool: &PgPool, id_exam: i32) -> ExamDto {
     let exam = exam_repository::find_by_id(&pool, id_exam).await.unwrap();

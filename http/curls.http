@@ -1,13 +1,16 @@
 curl --request POST \
---url localhost:4001/v1/exam/start \
+--url localhost:4001/v1/exam/1/start \
+--header 'content-type: application/json'
+
+curl --request POST \
+--url localhost:4001/v1/exam/1/question/1/answer/3 \
 --header 'content-type: application/json' \
---data '{
-    "id": 1,
+--data '{ 
     "content": "Content"
 }' | json_pp
 
 curl --request POST \
---url localhost:4001/v1/exam/1/question/99 \
+--url localhost:4001/v1/exam/1/question/1/answer/3 \
 --header 'content-type: application/json' \
 --data '{ 
     "content": "Content"
