@@ -2,17 +2,12 @@ use amiquip::{
     AmqpProperties, Connection, ExchangeDeclareOptions, ExchangeType, FieldTable, Publish,
 };
 use serde_json;
-use sqlx::PgPool;
 
 use crate::application::dtos::answer_question_dto::AnswerQuestionDto;
 
 const PERSISTENT_MESSAGE: u8 = 2;
 
-pub fn answer_question(
-    connection: &mut Connection,
-    body: std::borrow::Cow<str>,
-    pool: &mut PgPool,
-) {
+pub fn answer_question(connection: &mut Connection, body: std::borrow::Cow<str>) {
     let answer_question: AnswerQuestionDto = serde_json::from_str(&body).unwrap();
     println!("{:#?}", answer_question);
     let exchange_name = "e_exam";
@@ -33,10 +28,10 @@ pub fn answer_question(
             },
         )
         .unwrap();
-    let buffer_answer_question = serde_json::to_vec(&answer_question.data).unwrap();
+    let answer_question_bytes = serde_json::to_vec(&answer_question.data).unwrap();
     exchange
         .publish(Publish::with_properties(
-            &buffer_answer_question,
+            &answer_question_bytes,
             routing_key,
             AmqpProperties::default().with_delivery_mode(PERSISTENT_MESSAGE),
         ))

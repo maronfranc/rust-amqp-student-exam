@@ -22,7 +22,7 @@ async fn main() {
         Err(error) => panic!("Connection error: {:?}", error),
     };
 
-    application::pattern_queue::pattern_queue(&mut connection, &mut pool).await;
+    application::pattern_queue::rmq_listen(&mut connection, &mut pool).await;
 
     connection.close().unwrap();
 }

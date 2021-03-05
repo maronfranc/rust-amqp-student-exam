@@ -3,7 +3,7 @@ use sqlx::PgPool;
 
 use crate::application::{dtos, patterns};
 
-pub async fn pattern_queue(connection: &mut Connection, pool: &mut PgPool) {
+pub async fn rmq_listen(connection: &mut Connection, pool: &mut PgPool) {
     let channel = connection.open_channel(None).unwrap();
     let queue = channel
         .queue_declare(
@@ -35,7 +35,7 @@ pub async fn pattern_queue(connection: &mut Connection, pool: &mut PgPool) {
                     patterns::start_exam::start_exam(connection, &channel, &pool, &delivery, body)
                         .await;
                 } else if pattern_dto.pattern == "answer_question" {
-                    patterns::answer_question::answer_question(connection, body, pool);
+                    patterns::answer_question::answer_question(connection, body);
                 } else if pattern_dto.pattern == "finish_exam" {
                     patterns::finish_exam::finish_exam(body, pool).await;
                 }

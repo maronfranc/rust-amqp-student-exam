@@ -7,7 +7,7 @@ use std::env::var;
 
 use crate::application::dtos::answer_question_dto::AnswerQuestionData;
 use crate::application::dtos::finish_exam_dto::FinishExamDto;
-use crate::infrastructure::repositories::answer_repository;
+use crate::domain::services::answer_service;
 
 pub async fn finish_exam(body: std::borrow::Cow<'_, str>, pool: &mut PgPool) {
     let amqp_url: String = var("AMQP_URL").expect("AMQP_URL is not set");
@@ -59,7 +59,7 @@ pub async fn finish_exam(body: std::borrow::Cow<'_, str>, pool: &mut PgPool) {
         match (ii, message) {
             (ii, ConsumerMessage::Delivery(message)) => {
                 let answer: AnswerQuestionData = serde_json::from_slice(&message.body).unwrap();
-                answer_repository::insert(&pool, &answer).await.unwrap();
+                answer_service::insert(&pool, &answer).await;
 
                 if ii + 1 == total_queue_messages {
                     queue
