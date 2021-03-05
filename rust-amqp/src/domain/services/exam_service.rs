@@ -1,3 +1,4 @@
+use sqlx::postgres::PgDone;
 use sqlx::PgPool;
 
 use crate::application::dtos::exam_dto::{AnswerDto, ExamDto, QuestionDto};
@@ -34,4 +35,10 @@ pub async fn find_exam_template_by_id(pool: &PgPool, id_exam: i32) -> ExamDto {
         description: exam.description,
         questions: questions_dto,
     }
+}
+
+pub async fn insert(pool: &PgPool, id_exam: i32, id_student: i32) {
+    exam_repository::insert(pool, id_exam, id_student)
+        .await
+        .unwrap();
 }

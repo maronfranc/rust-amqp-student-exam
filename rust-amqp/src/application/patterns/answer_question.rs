@@ -4,16 +4,16 @@ use amiquip::{
 use serde_json;
 
 use crate::application::dtos::answer_question_dto::AnswerQuestionDto;
+use crate::application::utils::get_student_exam_queue_names;
 
 const PERSISTENT_MESSAGE: u8 = 2;
 
 pub fn answer_question(connection: &mut Connection, body: std::borrow::Cow<str>) {
     let answer_question: AnswerQuestionDto = serde_json::from_str(&body).unwrap();
     println!("{:#?}", answer_question);
-    let exchange_name = "e_exam";
-    let routing_key = format!(
-        "r_exam_{}",
-        answer_question.data.id_student_exam.to_string(),
+    let (exchange_name, _, routing_key) = get_student_exam_queue_names(
+        answer_question.data.id_student,
+        answer_question.data.id_student_exam,
     );
     let channel = connection.open_channel(None).unwrap();
     let exchange = channel

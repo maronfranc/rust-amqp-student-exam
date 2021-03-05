@@ -1,13 +1,13 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct FinishExamDto {
+pub struct StudentExamDto {
     pub pattern: String,
-    pub data: FinishExamData,
+    pub data: StudentExamData,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct FinishExamData {
+pub struct StudentExamData {
     pub id_student: i32,
-    pub id_exam: i32,
+    pub id_student_exam: i32,
 }

@@ -6,16 +6,18 @@ use sqlx::PgPool;
 use std::env::var;
 
 use crate::application::dtos::answer_question_dto::AnswerQuestionData;
-use crate::application::dtos::finish_exam_dto::FinishExamDto;
+use crate::application::dtos::student_exam_dto::StudentExamDto;
+use crate::application::utils::get_student_exam_queue_names;
 use crate::domain::services::answer_service;
 
 pub async fn finish_exam(body: std::borrow::Cow<'_, str>, pool: &mut PgPool) {
     let amqp_url: String = var("AMQP_URL").expect("AMQP_URL is not set");
-    let finish_exam: FinishExamDto = serde_json::from_str(&body).unwrap();
-    println!("{:#?}", finish_exam);
-    let exchange_name = "e_exam";
-    let queue_name = format!("q_exam_{}", finish_exam.data.id_exam.to_string());
-    let routing_key = format!("r_exam_{}", finish_exam.data.id_exam.to_string());
+    let student_exam_dto: StudentExamDto = serde_json::from_str(&body).unwrap();
+    println!("{:#?}", student_exam_dto);
+    let (exchange_name, queue_name, routing_key) = get_student_exam_queue_names(
+        student_exam_dto.data.id_student,
+        student_exam_dto.data.id_student_exam,
+    );
     let mut connection = match Connection::insecure_open(&amqp_url) {
         Ok(conn) => conn,
         Err(error) => panic!("Connection error: {:?}", error),
