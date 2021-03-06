@@ -1,12 +1,13 @@
+use sqlx;
 use sqlx::PgPool;
 
 use crate::application::dtos::exam_dto::{AnswerDto, ExamDto, QuestionDto};
 use crate::infrastructure::repositories::{
-    answer_repository, exam_repository, questions_repository,
+    answer_repository, exams_repository, questions_repository,
 };
 
 pub async fn find_exam_template_by_id(pool: &PgPool, id_exam: i32) -> ExamDto {
-    let exam = exam_repository::find_by_id(&pool, id_exam).await.unwrap();
+    let exam = exams_repository::find_by_id(&pool, id_exam).await.unwrap();
     let exam_questions = questions_repository::find_questions_by_exam_id(&pool, id_exam)
         .await
         .unwrap();
@@ -34,10 +35,4 @@ pub async fn find_exam_template_by_id(pool: &PgPool, id_exam: i32) -> ExamDto {
         description: exam.description,
         questions: questions_dto,
     }
-}
-
-pub async fn insert(pool: &PgPool, id_exam: i32, id_student: i32) {
-    exam_repository::insert(pool, id_exam, id_student)
-        .await
-        .unwrap();
 }

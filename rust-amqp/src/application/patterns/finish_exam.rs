@@ -12,11 +12,11 @@ use crate::domain::services::student_answer_service;
 
 pub async fn finish_exam(body: std::borrow::Cow<'_, str>, pool: &mut PgPool) {
     let amqp_url: String = var("AMQP_URL").expect("AMQP_URL is not set");
-    let student_exam_dto: FinishExamDto = serde_json::from_str(&body).unwrap();
-    println!("{:#?}", student_exam_dto);
+    let finish_exam_dto: FinishExamDto = serde_json::from_str(&body).unwrap();
+    println!("{:#?}", finish_exam_dto);
     let (exchange_name, queue_name, routing_key) = get_student_exam_queue_names(
-        student_exam_dto.data.id_student,
-        student_exam_dto.data.id_student_exam,
+        finish_exam_dto.data.id_student,
+        finish_exam_dto.data.id_student_exam,
     );
     let mut connection = match Connection::insecure_open(&amqp_url) {
         Ok(conn) => conn,

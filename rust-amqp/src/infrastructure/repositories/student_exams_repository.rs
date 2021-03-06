@@ -1,5 +1,7 @@
 use sqlx::{postgres::PgDone, PgPool};
 
+use crate::infrastructure::models::IdModel;
+
 pub async fn increment(pool: &PgPool, id_student_exam: i32) -> Result<PgDone, sqlx::Error> {
     sqlx::query_as!(
         AnswerCorretionModel,
@@ -10,12 +12,15 @@ pub async fn increment(pool: &PgPool, id_student_exam: i32) -> Result<PgDone, sq
     .await
 }
 
-pub async fn insert(pool: &PgPool, id_student: i32, id_exam: i32) -> Result<PgDone, sqlx::Error> {
-    sqlx::query_file!(
+pub async fn insert(pool: &PgPool, id_student: i32, id_exam: i32) -> i32 {
+    sqlx::query_file_as!(
+        IdModel,
         "src/infrastructure/repositories/sql/insert_student_exam.sql",
         id_student,
         id_exam,
     )
-    .execute(pool)
+    .fetch_one(pool)
     .await
+    .unwrap()
+    .id
 }

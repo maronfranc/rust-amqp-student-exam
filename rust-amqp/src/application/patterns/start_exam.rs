@@ -7,7 +7,7 @@ use sqlx::PgPool;
 use crate::application::dtos::start_exam_dto::StartExamDto;
 use crate::application::reply_to;
 use crate::application::utils::get_student_exam_queue_names;
-use crate::domain::services::exam_service;
+use crate::domain::services::{exam_service, student_exam_service};
 
 fn create_exam_queue(
     connection: &mut Connection,
@@ -54,16 +54,14 @@ pub async fn start_exam(
     body: std::borrow::Cow<'_, str>,
 ) {
     let student_exam_dto: StartExamDto = serde_json::from_str(&body).unwrap();
-    let (exchange_name, queue_name, routing_key) = get_student_exam_queue_names(
-        student_exam_dto.data.id_student,
-        student_exam_dto.data.id_exam,
-    );
-    exam_service::insert(
+    let id_student_exam: i32 = student_exam_service::insert(
         &pool,
-        student_exam_dto.data.id_exam,
         student_exam_dto.data.id_student,
+        student_exam_dto.data.id_exam,
     )
     .await;
+    let (exchange_name, queue_name, routing_key) =
+        get_student_exam_queue_names(student_exam_dto.data.id_student, id_student_exam);
     create_exam_queue(connection, exchange_name, queue_name, routing_key);
     let exam_template =
         exam_service::find_exam_template_by_id(&pool, student_exam_dto.data.id_exam).await;
