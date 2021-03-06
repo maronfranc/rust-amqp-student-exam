@@ -1,19 +1,6 @@
-use sqlx::{postgres::PgDone, PgPool};
+use sqlx::PgPool;
 
-use crate::application::dtos::answer_question_dto::AnswerQuestionData;
-use crate::infrastructure::models::AnswerModel;
-
-pub async fn insert(pool: &PgPool, answer: &AnswerQuestionData) -> Result<PgDone, sqlx::Error> {
-    sqlx::query_file!(
-        "src/infrastructure/repositories/sql/insert_answer.sql",
-        answer.id_student,
-        answer.id_question,
-        answer.id_answer,
-        answer.id_student_exam
-    )
-    .execute(pool)
-    .await
-}
+use crate::infrastructure::models::{AnswerCorretionModel, AnswerModel};
 
 pub async fn find_answers_by_question_id(
     pool: &PgPool,
@@ -25,5 +12,18 @@ pub async fn find_answers_by_question_id(
         id_question,
     )
     .fetch_all(pool)
+    .await
+}
+
+pub async fn find_correction_by_id(
+    pool: &PgPool,
+    id_answer: i32,
+) -> Result<AnswerCorretionModel, sqlx::Error> {
+    sqlx::query_as!(
+        AnswerCorretionModel,
+        "SELECT is_correct from answers WHERE id = $1;",
+        id_answer,
+    )
+    .fetch_one(pool)
     .await
 }

@@ -21,3 +21,8 @@ pub struct AnswerModel {
     pub id: i32,
     pub content: String,
 }
+
+#[derive(FromRow, Debug)]
+pub struct AnswerCorretionModel {
+    pub is_correct: bool,
+}

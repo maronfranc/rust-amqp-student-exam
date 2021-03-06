@@ -1,4 +1,3 @@
-use sqlx::postgres::PgDone;
 use sqlx::PgPool;
 
 use crate::application::dtos::exam_dto::{AnswerDto, ExamDto, QuestionDto};
