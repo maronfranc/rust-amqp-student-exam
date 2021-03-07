@@ -3,25 +3,25 @@ use amiquip::{Connection, ConsumerMessage, ConsumerOptions, FieldTable, QueueDec
 use sqlx::PgPool;
 
 use crate::application::dtos::pattern_dto::PatternDto;
-use crate::application::{dtos, patterns, reply_to};
+use crate::application::{patterns, reply_to};
 
 async fn patterns<'a>(
     connection: &mut Connection,
     pool: &mut PgPool,
     body: std::borrow::Cow<'_, str>,
-    pattern_dto: PatternDto,
+    pattern: String,
 ) -> Result<Vec<u8>, Vec<u8>> {
-    if pattern_dto.pattern == "start_exam" {
+    if pattern == "exam_started" {
         match patterns::start_exam::start_exam(connection, &pool, body).await {
             Ok(exam_template) => return Ok(exam_template),
             Err(error) => return Err(error),
         }
-    } else if pattern_dto.pattern == "answer_question" {
+    } else if pattern == "question_answered" {
         match patterns::answer_question::answer_question(connection, body) {
             Ok(exam_template) => return Ok(exam_template),
             Err(error) => return Err(error),
         };
-    } else if pattern_dto.pattern == "finish_exam" {
+    } else if pattern == "exam_finished" {
         match patterns::finish_exam::finish_exam(body, pool).await {
             Ok(exam_template) => return Ok(exam_template),
             Err(error) => return Err(error),
@@ -35,7 +35,7 @@ pub async fn rmq_listen(connection: &mut Connection, pool: &mut PgPool) {
     let channel = connection.open_channel(None).unwrap();
     let queue = channel
         .queue_declare(
-            "q_exam_pattern",
+            "q_patterns",
             QueueDeclareOptions {
                 durable: true,
                 exclusive: false,
@@ -51,12 +51,11 @@ pub async fn rmq_listen(connection: &mut Connection, pool: &mut PgPool) {
             ..ConsumerOptions::default()
         })
         .unwrap();
-
     for message in consumer.receiver().iter() {
         match message {
             ConsumerMessage::Delivery(delivery) => {
                 let body = String::from_utf8_lossy(&delivery.body);
-                let pattern_dto: dtos::pattern_dto::PatternDto = match serde_json::from_str(&body) {
+                let pattern_dto: PatternDto = match serde_json::from_str(&body) {
                     Ok(dto) => dto,
                     Err(error) => {
                         let e = format!("{}", error);
@@ -66,7 +65,7 @@ pub async fn rmq_listen(connection: &mut Connection, pool: &mut PgPool) {
                     }
                 };
                 println!("{:#?}", pattern_dto);
-                match patterns(connection, pool, body, pattern_dto).await {
+                match patterns(connection, pool, body, pattern_dto.pattern).await {
                     Ok(data) => reply_to::rpc(&delivery, &channel, &data),
                     Err(error) => reply_to::rpc(&delivery, &channel, &error),
                 };

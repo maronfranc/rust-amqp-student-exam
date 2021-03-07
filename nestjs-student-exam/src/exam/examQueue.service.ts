@@ -7,10 +7,10 @@ import { FinishExamDto } from "./dto/FinishExam.dto";
 import { StartExamDto } from "./dto/StartExam.dto";
 
 const INJECT_TOKEN_EXAM = "INJECT_TOKEN_EXAM";
-const QUEUE_PATTERN_EXAM = "q_exam_pattern";
-const PATTERN_START_EXAM = "start_exam";
-const PATTERN_ANSWER_QUESTION = "answer_question";
-const PATTERN_FINISH_EXAM = "finish_exam";
+const QUEUE_PATTERN_EXAM = "q_patterns";
+const PATTERN_START_EXAM = "exam_started";
+const PATTERN_ANSWER_QUESTION = "question_answered";
+const PATTERN_FINISH_EXAM = "exam_finished";
 
 @Injectable()
 export class ExamQueueService {

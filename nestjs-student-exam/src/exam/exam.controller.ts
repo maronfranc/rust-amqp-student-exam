@@ -29,7 +29,7 @@ export class ExamController extends BaseController {
     const user = super.getUserFromToken();
 
     void this.examService.sendQuestionAnswer({
-      id_exam: idExam,
+      id_student_exam: idExam,
       id_question: idQuestion,
       id_answer: idAnswer,
       id_student: user.idStudent,
@@ -43,15 +43,10 @@ export class ExamController extends BaseController {
     const user = super.getUserFromToken();
 
     void this.examService.finishExam({
-      id_exam: idExam,
+      id_student_exam: idExam,
       id_student: user.idStudent,
     });
 
     return true;
-  }
-
-  @Get(":idExam/recover")
-  public async recoverExam(@Param("idExam", ParseIntPipe) idExam: number): Promise<any> {
-    return this.examService.getHello();
   }
 }
