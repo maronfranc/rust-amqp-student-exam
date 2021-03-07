@@ -10,9 +10,18 @@ use crate::application::dtos::finish_exam_dto::FinishExamDto;
 use crate::application::utils::get_student_exam_queue_names;
 use crate::domain::services::student_answer_service;
 
-pub async fn finish_exam(body: std::borrow::Cow<'_, str>, pool: &mut PgPool) {
+pub async fn finish_exam(
+    body: std::borrow::Cow<'_, str>,
+    pool: &mut PgPool,
+) -> Result<Vec<u8>, Vec<u8>> {
     let amqp_url: String = var("AMQP_URL").expect("AMQP_URL is not set");
-    let finish_exam_dto: FinishExamDto = serde_json::from_str(&body).unwrap();
+    let finish_exam_dto: FinishExamDto = match serde_json::from_str(&body) {
+        Ok(dto) => dto,
+        Err(error) => {
+            let e = format!("{}", error);
+            return Err(e.as_bytes().to_vec());
+        }
+    };
     println!("{:#?}", finish_exam_dto);
     let (exchange_name, queue_name, routing_key) = get_student_exam_queue_names(
         finish_exam_dto.data.id_student,
@@ -79,5 +88,7 @@ pub async fn finish_exam(body: std::borrow::Cow<'_, str>, pool: &mut PgPool) {
             }
         }
     }
+
     connection.close().unwrap();
+    Ok("Exam finished".as_bytes().to_vec())
 }

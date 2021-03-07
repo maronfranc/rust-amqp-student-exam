@@ -8,8 +8,17 @@ use crate::application::utils::get_student_exam_queue_names;
 
 const PERSISTENT_MESSAGE: u8 = 2;
 
-pub fn answer_question(connection: &mut Connection, body: std::borrow::Cow<str>) {
-    let answer_question: AnswerQuestionDto = serde_json::from_str(&body).unwrap();
+pub fn answer_question(
+    connection: &mut Connection,
+    body: std::borrow::Cow<str>,
+) -> Result<Vec<u8>, Vec<u8>> {
+    let answer_question: AnswerQuestionDto = match serde_json::from_str(&body) {
+        Ok(dto) => dto,
+        Err(error) => {
+            let e = format!("{}", error);
+            return Err(e.as_bytes().to_vec());
+        }
+    };
     println!("{:#?}", answer_question);
     let (exchange_name, _, routing_key) = get_student_exam_queue_names(
         answer_question.data.id_student,
@@ -37,4 +46,5 @@ pub fn answer_question(connection: &mut Connection, body: std::borrow::Cow<str>)
         ))
         .unwrap();
     channel.close().unwrap();
+    Ok("Question answered".as_bytes().to_vec())
 }

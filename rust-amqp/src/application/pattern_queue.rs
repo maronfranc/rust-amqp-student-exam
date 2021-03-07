@@ -1,7 +1,35 @@
 use amiquip::{Connection, ConsumerMessage, ConsumerOptions, FieldTable, QueueDeclareOptions};
+
 use sqlx::PgPool;
 
-use crate::application::{dtos, patterns};
+use crate::application::dtos::pattern_dto::PatternDto;
+use crate::application::{dtos, patterns, reply_to};
+
+async fn patterns<'a>(
+    connection: &mut Connection,
+    pool: &mut PgPool,
+    body: std::borrow::Cow<'_, str>,
+    pattern_dto: PatternDto,
+) -> Result<Vec<u8>, Vec<u8>> {
+    if pattern_dto.pattern == "start_exam" {
+        match patterns::start_exam::start_exam(connection, &pool, body).await {
+            Ok(exam_template) => return Ok(exam_template),
+            Err(error) => return Err(error),
+        }
+    } else if pattern_dto.pattern == "answer_question" {
+        match patterns::answer_question::answer_question(connection, body) {
+            Ok(exam_template) => return Ok(exam_template),
+            Err(error) => return Err(error),
+        };
+    } else if pattern_dto.pattern == "finish_exam" {
+        match patterns::finish_exam::finish_exam(body, pool).await {
+            Ok(exam_template) => return Ok(exam_template),
+            Err(error) => return Err(error),
+        };
+    }
+
+    Err("Pattern not implemented".as_bytes().to_vec())
+}
 
 pub async fn rmq_listen(connection: &mut Connection, pool: &mut PgPool) {
     let channel = connection.open_channel(None).unwrap();
@@ -28,17 +56,20 @@ pub async fn rmq_listen(connection: &mut Connection, pool: &mut PgPool) {
         match message {
             ConsumerMessage::Delivery(delivery) => {
                 let body = String::from_utf8_lossy(&delivery.body);
-                let pattern_dto: dtos::pattern_dto::PatternDto =
-                    serde_json::from_str(&body).unwrap();
+                let pattern_dto: dtos::pattern_dto::PatternDto = match serde_json::from_str(&body) {
+                    Ok(dto) => dto,
+                    Err(error) => {
+                        let e = format!("{}", error);
+                        let error_buffer: &[u8] = e.as_bytes();
+                        reply_to::rpc(&delivery, &channel, &error_buffer);
+                        continue;
+                    }
+                };
                 println!("{:#?}", pattern_dto);
-                if pattern_dto.pattern == "start_exam" {
-                    patterns::start_exam::start_exam(connection, &channel, &pool, &delivery, body)
-                        .await;
-                } else if pattern_dto.pattern == "answer_question" {
-                    patterns::answer_question::answer_question(connection, body);
-                } else if pattern_dto.pattern == "finish_exam" {
-                    patterns::finish_exam::finish_exam(body, pool).await;
-                }
+                match patterns(connection, pool, body, pattern_dto).await {
+                    Ok(data) => reply_to::rpc(&delivery, &channel, &data),
+                    Err(error) => reply_to::rpc(&delivery, &channel, &error),
+                };
             }
             other => {
                 println!("Consumer ended: {:?}", other);
