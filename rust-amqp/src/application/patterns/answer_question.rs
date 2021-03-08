@@ -2,15 +2,18 @@ use amiquip::{
     AmqpProperties, Connection, ExchangeDeclareOptions, ExchangeType, FieldTable, Publish,
 };
 use serde_json;
+use sqlx::PgPool;
 
 use crate::application::dtos::answer_question_dto::AnswerQuestionDto;
 use crate::application::utils::get_student_exam_queue_names;
+use crate::domain::services::student_exam_service;
 
 const PERSISTENT_MESSAGE: u8 = 2;
 
-pub fn answer_question(
+pub async fn answer_question(
     connection: &mut Connection,
-    body: std::borrow::Cow<str>,
+    body: std::borrow::Cow<'_, str>,
+    pool: &mut PgPool,
 ) -> Result<Vec<u8>, Vec<u8>> {
     let answer_question: AnswerQuestionDto = match serde_json::from_str(&body) {
         Ok(dto) => dto,
@@ -20,6 +23,13 @@ pub fn answer_question(
         }
     };
     println!("{:#?}", answer_question);
+    let exam_exists =
+        student_exam_service::find_finished_date_by_id(&pool, answer_question.data.id_student_exam)
+            .await
+            .unwrap();
+    if exam_exists.finished_at.is_some() {
+        return Err("Exam already finished".as_bytes().to_vec());
+    };
     let (exchange_name, _, routing_key) = get_student_exam_queue_names(
         answer_question.data.id_student,
         answer_question.data.id_student_exam,

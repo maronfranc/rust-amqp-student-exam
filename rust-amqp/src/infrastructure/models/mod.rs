@@ -1,3 +1,4 @@
+use sqlx::types::chrono;
 use sqlx::FromRow;
 
 #[derive(FromRow, Debug)]
@@ -27,4 +28,9 @@ pub struct AnswerCorretionModel {
 #[derive(FromRow, Debug)]
 pub struct IdModel {
     pub id: i32,
+}
+
+#[derive(FromRow, Debug)]
+pub struct FinishedAtModel {
+    pub finished_at: Option<chrono::DateTime<chrono::Utc>>,
 }

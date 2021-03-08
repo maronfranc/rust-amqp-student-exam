@@ -17,7 +17,7 @@ pub async fn insert(pool: &PgPool, answer: &AnswerQuestionData) {
             .unwrap();
 
     if answer_corretion.is_correct {
-        student_exams_repository::increment(&pool, answer.id_student_exam)
+        student_exams_repository::increment_score(&pool, answer.id_student_exam)
             .await
             .unwrap();
     }

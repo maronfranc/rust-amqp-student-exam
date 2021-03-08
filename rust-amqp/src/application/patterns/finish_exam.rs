@@ -1,3 +1,4 @@
+use crate::infrastructure::models::FinishedAtModel;
 use amiquip::{
     Connection, ConsumerMessage, ConsumerOptions, ExchangeDeclareOptions, ExchangeType, FieldTable,
     QueueDeclareOptions, QueueDeleteOptions,
@@ -7,7 +8,7 @@ use sqlx::PgPool;
 use crate::application::dtos::answer_question_dto::AnswerQuestionData;
 use crate::application::dtos::finish_exam_dto::FinishExamDto;
 use crate::application::utils::get_student_exam_queue_names;
-use crate::domain::services::student_answer_service;
+use crate::domain::services::{student_answer_service, student_exam_service};
 
 pub async fn finish_exam(
     connection: &mut Connection,
@@ -20,6 +21,13 @@ pub async fn finish_exam(
             let e = format!("{}", error);
             return Err(e.as_bytes().to_vec());
         }
+    };
+    let exam_exists: FinishedAtModel =
+        student_exam_service::find_finished_date_by_id(&pool, finish_exam_dto.data.id_student_exam)
+            .await
+            .unwrap();
+    if exam_exists.finished_at.is_some() {
+        return Err("Exam already finished".as_bytes().to_vec());
     };
     let (exchange_name, queue_name, routing_key) = get_student_exam_queue_names(
         finish_exam_dto.data.id_student,
@@ -76,6 +84,8 @@ pub async fn finish_exam(
                             .unwrap();
                         drop(consumer);
                         channel.close().unwrap();
+                        student_exam_service::finish_student_exam(&pool, answer.id_student_exam)
+                            .await;
                         return Ok("Exam finished".as_bytes().to_vec());
                     }
                 }

@@ -12,18 +12,18 @@ async fn patterns<'a>(
     pattern: String,
 ) -> Result<Vec<u8>, Vec<u8>> {
     if pattern == "exam_started" {
-        match patterns::start_exam::start_exam(connection, body, &pool).await {
-            Ok(exam_template) => return Ok(exam_template),
+        match patterns::start_exam::start_exam(connection, body, pool).await {
+            Ok(response) => return Ok(response),
             Err(error) => return Err(error),
         }
     } else if pattern == "question_answered" {
-        match patterns::answer_question::answer_question(connection, body) {
-            Ok(exam_template) => return Ok(exam_template),
+        match patterns::answer_question::answer_question(connection, body, pool).await {
+            Ok(response) => return Ok(response),
             Err(error) => return Err(error),
         };
     } else if pattern == "exam_finished" {
         match patterns::finish_exam::finish_exam(connection, body, pool).await {
-            Ok(exam_template) => return Ok(exam_template),
+            Ok(response) => return Ok(response),
             Err(error) => return Err(error),
         };
     }
