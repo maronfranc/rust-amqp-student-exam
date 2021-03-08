@@ -8,19 +8,15 @@ import { ExamQueueService } from './examQueue.service';
 export class ExamService {
   public constructor(private readonly examQueueService: ExamQueueService) { }
 
-  public getHello(): string {
-    return 'Hello World!';
-  }
-
   public async emitStartExam(exam: StartExamDto): Promise<any> {
-    return this.examQueueService.sendStartExam(exam).toPromise();
+    return this.examQueueService.sendStartExam(exam);
   }
 
   public async sendQuestionAnswer(questionAnswer: AnswerQuestionDto): Promise<any> {
-    return this.examQueueService.sendQuestionAnswer(questionAnswer).toPromise();
+    return this.examQueueService.sendQuestionAnswer(questionAnswer);
   }
 
   public async finishExam(finishExamDto: FinishExamDto): Promise<any> {
-    return this.examQueueService.sendfinishExam(finishExamDto).toPromise();
+    return this.examQueueService.sendfinishExam(finishExamDto);
   }
 }

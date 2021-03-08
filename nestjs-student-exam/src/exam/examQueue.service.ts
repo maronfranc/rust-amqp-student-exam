@@ -1,57 +1,76 @@
-import { Inject, Injectable } from "@nestjs/common";
-import { ClientProviderOptions, ClientProxy, Transport } from "@nestjs/microservices";
-import { Observable } from "rxjs";
+import { Injectable, OnModuleInit } from "@nestjs/common";
 import { rabbitmqKeys } from "../common/Configuration";
 import { AnswerQuestionDto } from "./dto/Answer.dto";
 import { FinishExamDto } from "./dto/FinishExam.dto";
 import { StartExamDto } from "./dto/StartExam.dto";
+import * as amqplib from "amqplib";
 
-const INJECT_TOKEN_EXAM = "INJECT_TOKEN_EXAM";
 const QUEUE_PATTERN_EXAM = "q_patterns";
 const PATTERN_START_EXAM = "exam_started";
 const PATTERN_ANSWER_QUESTION = "question_answered";
 const PATTERN_FINISH_EXAM = "exam_finished";
+const PATTERNS = [PATTERN_START_EXAM, PATTERN_ANSWER_QUESTION, PATTERN_FINISH_EXAM] as const;
 
-@Injectable()
-export class ExamQueueService {
-    public constructor(@Inject(INJECT_TOKEN_EXAM) private readonly client: ClientProxy) { }
-
-    public sendStartExam(startExamDto: StartExamDto): Observable<any> {
-        console.info("Client send: ", startExamDto)
-
-        return this.client.send(PATTERN_START_EXAM, startExamDto);
-    }
-
-    public sendQuestionAnswer(answerQuestionDto: AnswerQuestionDto): Observable<any> {
-        console.info("Client send: ", answerQuestionDto)
-
-        return this.client.send(PATTERN_ANSWER_QUESTION, answerQuestionDto);
-    }
-
-    public sendfinishExam(finishExamDto: FinishExamDto): Observable<any> {
-        console.info("Client send: ", finishExamDto)
-
-        return this.client.send(PATTERN_FINISH_EXAM, finishExamDto);
-    }
-}
+type Patterns = typeof PATTERNS[number];
 
 const { host, password, port, username, vhost } = rabbitmqKeys;
 
-const commonProducer: Readonly<ClientProviderOptions> = {
-    transport: Transport.RMQ,
-    name: INJECT_TOKEN_EXAM,
-    options: {
-        urls: [`amqp://${username}:${password}@${host}:${port}/${vhost}`],
-    },
-};
+const generateUuid = () => Math.random().toString() + Math.random().toString() + Math.random().toString();
 
-export const startExamProducer: ClientProviderOptions = {
-    ...commonProducer,
-    options: {
-        ...commonProducer.options,
-        queue: QUEUE_PATTERN_EXAM,
-        queueOptions: {
-            durable: true
-        }
+@Injectable()
+export class ExamQueueService implements OnModuleInit {
+    private connection: amqplib.Connection;
+
+    public constructor() { }
+
+    public async onModuleInit() {
+        this.connection = await amqplib.connect(`amqp://${username}:${password}@${host}:${port}/${vhost}`);
     }
-};
+
+    public async send(pattern: Patterns, data: StartExamDto | AnswerQuestionDto | FinishExamDto): Promise<any> {
+        const channel = await this.connection.createChannel();
+        const q = await channel.assertQueue("", {
+            durable: false,
+            exclusive: false,
+            autoDelete: true,
+        });
+        const correlationId = generateUuid();
+
+        const payload = {
+            pattern,
+            data
+        };
+        console.info("Client send: ", payload);
+
+        channel.sendToQueue(
+            QUEUE_PATTERN_EXAM,
+            Buffer.from(JSON.stringify(payload)),
+            {
+                correlationId: correlationId,
+                replyTo: q.queue
+            }
+        );
+
+        return new Promise((resolve) => {
+            channel.consume(q.queue, (msg) => {
+                if (msg.properties.correlationId == correlationId) {
+                    resolve(msg.content.toString());
+                }
+            }, {
+                noAck: true,
+            })
+        });
+    }
+
+    public async sendStartExam(startExamDto: StartExamDto): Promise<any> {
+        return this.send(PATTERN_START_EXAM, startExamDto);
+    }
+
+    public sendQuestionAnswer(answerQuestionDto: AnswerQuestionDto): Promise<any> {
+        return this.send(PATTERN_ANSWER_QUESTION, answerQuestionDto);
+    }
+
+    public sendfinishExam(finishExamDto: FinishExamDto): Promise<string> {
+        return this.send(PATTERN_FINISH_EXAM, finishExamDto);
+    }
+}

@@ -1,24 +1,19 @@
 curl --request POST \
 --url localhost:4001/v1/exam/1/start \
---header 'content-type: application/json'
+--header 'content-type: application/json' \
+| json_pp
 
 curl --request POST \
---url localhost:4001/v1/exam/1/question/1/answer/3 \
+--url localhost:4001/v1/exam/1/question/1/answer/1 \
 --header 'content-type: application/json' \
---data '{ 
-    "content": "Content"
-}' | json_pp
+| json_pp
 
 curl --request POST \
---url localhost:4001/v1/exam/1/question/1/answer/3 \
+--url localhost:4001/v1/exam/1/question/2/answer/9 \
 --header 'content-type: application/json' \
---data '{ 
-    "content": "Content"
-}' | json_pp
+| json_pp
 
 curl --request POST \
 --url localhost:4001/v1/exam/1/finish \
 --header 'content-type: application/json' \
---data '{ 
-    "content": "Content"
-}' | json_pp
+| json_pp
