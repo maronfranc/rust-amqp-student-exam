@@ -44,8 +44,8 @@ fn create_exam_queue(
 
 pub async fn start_exam<'a>(
     connection: &mut Connection,
-    pool: &PgPool,
     body: std::borrow::Cow<'_, str>,
+    pool: &PgPool,
 ) -> Result<Vec<u8>, Vec<u8>> {
     let start_exam_dto: StartExamDto = match serde_json::from_str(&body) {
         Ok(dto) => dto,
