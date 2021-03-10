@@ -4,30 +4,30 @@
 
 ---
 ## Rust AMQP
-1. Database migrations.
+1. Change directory.
+```
+cd rust-amqp
+```
+2. Database migrations.
 ```
 cargo run --bin migrations
 ```
-2. Seed database with development data.
+3. Seed database with development data.
 ```
 cargo run --bin seed
 ```
-3. Run.
+4. Run.
 ```
 cargo run --bin main
 ```
-## Nestjs API
-1. Install.
+## Rust API
+1. Change directory.
 ```
-yarn
-# or
-npm install
+cd rust-api
 ```
-2. Start.
+2. Run
 ```
-yarn start
-# or
-npm run start
+cargo run
 ```
 ## Curl
 1. Start exam.
@@ -61,3 +61,17 @@ curl --request POST \
 ### [Queue manager.](http://localhost:15672/)
 - Login: guest
 - Password: guest
+
+## Nestjs API
+1. Install.
+```
+yarn
+# or
+npm install
+```
+2. Start.
+```
+yarn start
+# or
+npm run start
+```
