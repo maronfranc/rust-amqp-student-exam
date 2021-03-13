@@ -3,6 +3,7 @@ use amiquip::{
     FieldTable, Publish, Queue, QueueDeclareOptions, Result,
 };
 use serde_json;
+use std::env::var;
 use uuid::Uuid;
 
 use crate::exam::dto::answer_question_dto::{AnswerQuestionData, AnswerQuestionDto};
@@ -78,7 +79,9 @@ impl<'a> ExamQueueService<'a> {
 }
 
 pub fn send_start_exam(start_exam_dto: StartExamData) -> ResponseDto {
-    let mut connection = Connection::insecure_open("amqp://guest:guest@localhost:5672").unwrap();
+    dotenv::dotenv().ok();
+    let amqp_url: String = var("AMQP_URL").expect("AMQP_URL is not set");
+    let mut connection = Connection::insecure_open(&amqp_url).unwrap();
     let channel = connection.open_channel(None).unwrap();
     let exam_queue_service = ExamQueueService::new(&channel).unwrap();
     let body = serde_json::to_vec(&StartExamDto {
@@ -93,7 +96,9 @@ pub fn send_start_exam(start_exam_dto: StartExamData) -> ResponseDto {
 }
 
 pub fn send_answer_question(answer_question: AnswerQuestionData) -> ResponseDto {
-    let mut connection = Connection::insecure_open("amqp://guest:guest@localhost:5672").unwrap();
+    dotenv::dotenv().ok();
+    let amqp_url: String = var("AMQP_URL").expect("AMQP_URL is not set");
+    let mut connection = Connection::insecure_open(&amqp_url).unwrap();
     let channel = connection.open_channel(None).unwrap();
     let exam_queue_service = ExamQueueService::new(&channel).unwrap();
     let body = serde_json::to_vec(&AnswerQuestionDto {
@@ -108,7 +113,9 @@ pub fn send_answer_question(answer_question: AnswerQuestionData) -> ResponseDto 
 }
 
 pub fn send_finish_exam(finish_exam: FinishExamData) -> ResponseDto {
-    let mut connection = Connection::insecure_open("amqp://guest:guest@localhost:5672").unwrap();
+    dotenv::dotenv().ok();
+    let amqp_url: String = var("AMQP_URL").expect("AMQP_URL is not set");
+    let mut connection = Connection::insecure_open(&amqp_url).unwrap();
     let channel = connection.open_channel(None).unwrap();
     let exam_queue_service = ExamQueueService::new(&channel).unwrap();
     let body = serde_json::to_vec(&FinishExamDto {
