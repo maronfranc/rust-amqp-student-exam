@@ -1,6 +1,8 @@
 use amiquip::{Connection, ExchangeDeclareOptions, ExchangeType, FieldTable, QueueDeclareOptions};
 use sqlx::PgPool;
 
+use crate::application::common::http_status;
+use crate::application::common::response_to_vec::response_to_vec;
 use crate::application::dtos::start_exam_dto::StartExamDto;
 use crate::application::utils::get_student_exam_queue_names;
 use crate::domain::services::{exam_service, student_exam_service};
@@ -42,7 +44,7 @@ fn create_exam_queue(
     channel.close().unwrap();
 }
 
-pub async fn start_exam<'a>(
+pub async fn start_exam(
     connection: &mut Connection,
     body: std::borrow::Cow<'_, str>,
     pool: &PgPool,
@@ -50,8 +52,12 @@ pub async fn start_exam<'a>(
     let start_exam_dto: StartExamDto = match serde_json::from_str(&body) {
         Ok(dto) => dto,
         Err(error) => {
-            let e = format!("{}", error);
-            return Err(e.as_bytes().to_vec());
+            let error_message = format!("{}", error);
+            return Err(response_to_vec(
+                http_status::INTERNAL_SERVER_ERROR,
+                error_message,
+                None,
+            ));
         }
     };
     let id_student_exam: i32 = student_exam_service::insert(
@@ -65,11 +71,11 @@ pub async fn start_exam<'a>(
     create_exam_queue(connection, exchange_name, queue_name, routing_key);
     let exam_template =
         exam_service::find_exam_template_by_id(&pool, start_exam_dto.data.id_exam).await;
-    let buffer_exam_template = match serde_json::to_vec(&exam_template) {
-        Ok(et) => et,
-        Err(_error) => "Error converting exam template to vector"
-            .as_bytes()
-            .to_vec(),
-    };
-    Ok(buffer_exam_template)
+    let json_exam_template = serde_json::to_string(&exam_template).unwrap();
+    let response_dto = response_to_vec(
+        http_status::OK,
+        String::from("Exam started"),
+        Some(json_exam_template),
+    );
+    Ok(response_dto)
 }

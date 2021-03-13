@@ -5,6 +5,8 @@ use amiquip::{
 };
 use sqlx::PgPool;
 
+use crate::application::common::http_status;
+use crate::application::common::response_to_vec::response_to_vec;
 use crate::application::dtos::answer_question_dto::AnswerQuestionData;
 use crate::application::dtos::finish_exam_dto::FinishExamDto;
 use crate::application::utils::get_student_exam_queue_names;
@@ -18,8 +20,12 @@ pub async fn finish_exam(
     let finish_exam_dto: FinishExamDto = match serde_json::from_str(&body) {
         Ok(dto) => dto,
         Err(error) => {
-            let e = format!("{}", error);
-            return Err(e.as_bytes().to_vec());
+            let error_message = format!("{}", error);
+            return Err(response_to_vec(
+                http_status::BAD_REQUEST,
+                error_message,
+                None,
+            ));
         }
     };
     let exam_exists: FinishedAtModel =
@@ -27,7 +33,11 @@ pub async fn finish_exam(
             .await
             .unwrap();
     if exam_exists.finished_at.is_some() {
-        return Err("Exam already finished".as_bytes().to_vec());
+        return Err(response_to_vec(
+            http_status::UNPROCESSABLE_ENTITY,
+            String::from("Exam already finished"),
+            None,
+        ));
     };
     let (exchange_name, queue_name, routing_key) = get_student_exam_queue_names(
         finish_exam_dto.data.id_student,
@@ -86,7 +96,11 @@ pub async fn finish_exam(
                         channel.close().unwrap();
                         student_exam_service::finish_student_exam(&pool, answer.id_student_exam)
                             .await;
-                        return Ok("Exam finished".as_bytes().to_vec());
+                        return Ok(response_to_vec(
+                            http_status::OK,
+                            String::from("Exam finished"),
+                            None,
+                        ));
                     }
                 }
                 other => {
@@ -96,5 +110,9 @@ pub async fn finish_exam(
             }
         }
     }
-    Err("Empty queue".as_bytes().to_vec())
+    Err(response_to_vec(
+        http_status::UNPROCESSABLE_ENTITY,
+        String::from("Empty queue"),
+        None,
+    ))
 }

@@ -2,40 +2,51 @@ use amiquip::{Connection, ConsumerMessage, ConsumerOptions, FieldTable, QueueDec
 
 use sqlx::PgPool;
 
+use crate::application::common::http_status;
+use crate::application::common::response_to_vec::response_to_vec;
 use crate::application::dtos::pattern_dto::PatternDto;
 use crate::application::{patterns, reply_to};
 
-async fn patterns<'a>(
+const QUEUE_PATTERN_EXAM: &str = "q_patterns";
+const PATTERN_START_EXAM: &str = "exam_started";
+const PATTERN_ANSWER_QUESTION: &str = "question_answered";
+const PATTERN_FINISH_EXAM: &str = "exam_finished";
+
+async fn patterns(
     connection: &mut Connection,
     pool: &mut PgPool,
     body: std::borrow::Cow<'_, str>,
     pattern: String,
 ) -> Result<Vec<u8>, Vec<u8>> {
-    if pattern == "exam_started" {
+    if pattern == PATTERN_START_EXAM {
         match patterns::start_exam::start_exam(connection, body, pool).await {
             Ok(response) => return Ok(response),
             Err(error) => return Err(error),
         }
-    } else if pattern == "question_answered" {
+    } else if pattern == PATTERN_ANSWER_QUESTION {
         match patterns::answer_question::answer_question(connection, body, pool).await {
             Ok(response) => return Ok(response),
             Err(error) => return Err(error),
         };
-    } else if pattern == "exam_finished" {
+    } else if pattern == PATTERN_FINISH_EXAM {
         match patterns::finish_exam::finish_exam(connection, body, pool).await {
             Ok(response) => return Ok(response),
             Err(error) => return Err(error),
         };
     }
-
-    Err("Pattern not implemented".as_bytes().to_vec())
+    let error_message = format!("Pattern not implemented: {}", pattern);
+    Err(response_to_vec(
+        http_status::NOT_IMPLEMENTED,
+        error_message,
+        None,
+    ))
 }
 
 pub async fn rmq_listen(connection: &mut Connection, pool: &mut PgPool) {
     let channel = connection.open_channel(None).unwrap();
     let queue = channel
         .queue_declare(
-            "q_patterns",
+            QUEUE_PATTERN_EXAM,
             QueueDeclareOptions {
                 durable: true,
                 exclusive: false,

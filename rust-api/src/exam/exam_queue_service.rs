@@ -1,7 +1,3 @@
-use crate::exam::dto::answer_question_dto::AnswerQuestionData;
-use crate::exam::dto::answer_question_dto::AnswerQuestionDto;
-use crate::exam::dto::finish_exam_dto::FinishExamData;
-use crate::exam::dto::finish_exam_dto::FinishExamDto;
 use amiquip::{
     AmqpProperties, Channel, Connection, Consumer, ConsumerMessage, ConsumerOptions, Exchange,
     FieldTable, Publish, Queue, QueueDeclareOptions, Result,
@@ -9,7 +5,9 @@ use amiquip::{
 use serde_json;
 use uuid::Uuid;
 
-use crate::exam::dto::exam_dto::ExamDto;
+use crate::exam::dto::answer_question_dto::{AnswerQuestionData, AnswerQuestionDto};
+use crate::exam::dto::finish_exam_dto::{FinishExamData, FinishExamDto};
+use crate::exam::dto::response_dto::ResponseDto;
 use crate::exam::dto::start_exam_dto::{StartExamData, StartExamDto};
 
 struct ExamQueueService<'a> {
@@ -79,7 +77,7 @@ impl<'a> ExamQueueService<'a> {
     }
 }
 
-pub fn send_start_exam(start_exam_dto: StartExamData) -> ExamDto {
+pub fn send_start_exam(start_exam_dto: StartExamData) -> ResponseDto {
     let mut connection = Connection::insecure_open("amqp://guest:guest@localhost:5672").unwrap();
     let channel = connection.open_channel(None).unwrap();
     let exam_queue_service = ExamQueueService::new(&channel).unwrap();
@@ -90,11 +88,11 @@ pub fn send_start_exam(start_exam_dto: StartExamData) -> ExamDto {
     .unwrap();
     let result = exam_queue_service.call(&body).unwrap();
     connection.close().unwrap();
-    let exam_dto: ExamDto = serde_json::from_str(&result).unwrap();
+    let exam_dto: ResponseDto = serde_json::from_str(&result).unwrap();
     exam_dto
 }
 
-pub fn send_answer_question(answer_question: AnswerQuestionData) -> String {
+pub fn send_answer_question(answer_question: AnswerQuestionData) -> ResponseDto {
     let mut connection = Connection::insecure_open("amqp://guest:guest@localhost:5672").unwrap();
     let channel = connection.open_channel(None).unwrap();
     let exam_queue_service = ExamQueueService::new(&channel).unwrap();
@@ -104,11 +102,12 @@ pub fn send_answer_question(answer_question: AnswerQuestionData) -> String {
     })
     .unwrap();
     let result = exam_queue_service.call(&body).unwrap();
+    let response: ResponseDto = serde_json::from_str(&result).unwrap();
     connection.close().unwrap();
-    result
+    response
 }
 
-pub fn send_finish_exam(finish_exam: FinishExamData) -> String {
+pub fn send_finish_exam(finish_exam: FinishExamData) -> ResponseDto {
     let mut connection = Connection::insecure_open("amqp://guest:guest@localhost:5672").unwrap();
     let channel = connection.open_channel(None).unwrap();
     let exam_queue_service = ExamQueueService::new(&channel).unwrap();
@@ -118,6 +117,7 @@ pub fn send_finish_exam(finish_exam: FinishExamData) -> String {
     })
     .unwrap();
     let result = exam_queue_service.call(&body).unwrap();
+    let response: ResponseDto = serde_json::from_str(&result).unwrap();
     connection.close().unwrap();
-    result
+    response
 }
