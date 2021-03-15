@@ -20,3 +20,10 @@ pub struct AnswerDto {
     pub id: i32,
     pub content: String,
 }
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct StudentExamDto {
+    pub id: i32,
+    pub id_student: i32,
+    pub exam: ExamDto,
+}

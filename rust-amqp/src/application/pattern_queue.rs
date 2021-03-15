@@ -69,8 +69,7 @@ pub async fn rmq_listen(connection: &mut Connection, pool: &mut PgPool) {
                     Ok(dto) => dto,
                     Err(error) => {
                         let e = format!("{}", error);
-                        let error_buffer: &[u8] = e.as_bytes();
-                        reply_to::rpc(&delivery, &channel, &error_buffer);
+                        reply_to::rpc(&delivery, &channel, &e.as_bytes());
                         continue;
                     }
                 };

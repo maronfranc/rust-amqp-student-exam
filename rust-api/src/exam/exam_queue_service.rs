@@ -1,3 +1,4 @@
+use crate::exam::dto::exam_dto::StudentExamDto;
 use amiquip::{
     AmqpProperties, Channel, Connection, Consumer, ConsumerMessage, ConsumerOptions, Exchange,
     FieldTable, Publish, Queue, QueueDeclareOptions, Result,
@@ -78,7 +79,7 @@ impl<'a> ExamQueueService<'a> {
     }
 }
 
-pub fn send_start_exam(start_exam_dto: StartExamData) -> ResponseDto {
+pub fn send_start_exam(start_exam_dto: StartExamData) -> ResponseDto<StudentExamDto> {
     dotenv::dotenv().ok();
     let amqp_url: String = var("AMQP_URL").expect("AMQP_URL is not set");
     let mut connection = Connection::insecure_open(&amqp_url).unwrap();
@@ -91,11 +92,11 @@ pub fn send_start_exam(start_exam_dto: StartExamData) -> ResponseDto {
     .unwrap();
     let result = exam_queue_service.call(&body).unwrap();
     connection.close().unwrap();
-    let exam_dto: ResponseDto = serde_json::from_str(&result).unwrap();
+    let exam_dto: ResponseDto<StudentExamDto> = serde_json::from_str(&result).unwrap();
     exam_dto
 }
 
-pub fn send_answer_question(answer_question: AnswerQuestionData) -> ResponseDto {
+pub fn send_answer_question(answer_question: AnswerQuestionData) -> ResponseDto<String> {
     dotenv::dotenv().ok();
     let amqp_url: String = var("AMQP_URL").expect("AMQP_URL is not set");
     let mut connection = Connection::insecure_open(&amqp_url).unwrap();
@@ -107,12 +108,12 @@ pub fn send_answer_question(answer_question: AnswerQuestionData) -> ResponseDto 
     })
     .unwrap();
     let result = exam_queue_service.call(&body).unwrap();
-    let response: ResponseDto = serde_json::from_str(&result).unwrap();
+    let response: ResponseDto<String> = serde_json::from_str(&result).unwrap();
     connection.close().unwrap();
     response
 }
 
-pub fn send_finish_exam(finish_exam: FinishExamData) -> ResponseDto {
+pub fn send_finish_exam(finish_exam: FinishExamData) -> ResponseDto<String> {
     dotenv::dotenv().ok();
     let amqp_url: String = var("AMQP_URL").expect("AMQP_URL is not set");
     let mut connection = Connection::insecure_open(&amqp_url).unwrap();
@@ -124,7 +125,7 @@ pub fn send_finish_exam(finish_exam: FinishExamData) -> ResponseDto {
     })
     .unwrap();
     let result = exam_queue_service.call(&body).unwrap();
-    let response: ResponseDto = serde_json::from_str(&result).unwrap();
+    let response: ResponseDto<String> = serde_json::from_str(&result).unwrap();
     connection.close().unwrap();
     response
 }

@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct ResponseDto {
+pub struct ResponseDto<T> {
     pub code: u16,
     pub message: String,
-    pub body: Option<String>,
+    pub body: Option<T>,
 }
