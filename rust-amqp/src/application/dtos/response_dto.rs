@@ -4,5 +4,11 @@ use serde::{Deserialize, Serialize};
 pub struct ResponseDto {
     pub code: u16,
     pub message: String,
-    pub body: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ResponseBodyDto<T: Serialize> {
+    pub code: u16,
+    pub message: String,
+    pub body: Option<T>,
 }

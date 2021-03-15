@@ -14,7 +14,8 @@ pub fn rpc(delivery: &Delivery, channel: &Channel, body: &[u8]) {
                 reply_to,
                 AmqpProperties::default()
                     .with_correlation_id(String::from(corr_id))
-                    .with_delivery_mode(NON_PERSISTENT_MESSAGE),
+                    .with_delivery_mode(NON_PERSISTENT_MESSAGE)
+                    .with_content_type(String::from("application/json")),
             ))
             .unwrap();
     }

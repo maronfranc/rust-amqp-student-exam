@@ -5,7 +5,7 @@ use serde_json;
 use sqlx::PgPool;
 
 use crate::application::common::http_status;
-use crate::application::common::response_to_vec::response_to_vec;
+use crate::application::common::response_helper;
 use crate::application::dtos::answer_question_dto::AnswerQuestionDto;
 use crate::application::utils::get_student_exam_queue_names;
 use crate::domain::services::student_exam_service;
@@ -21,10 +21,9 @@ pub async fn answer_question(
         Ok(dto) => dto,
         Err(error) => {
             let error_message = format!("{}", error);
-            return Err(response_to_vec(
+            return Err(response_helper::to_vec(
                 http_status::BAD_REQUEST,
                 error_message,
-                None,
             ));
         }
     };
@@ -34,10 +33,9 @@ pub async fn answer_question(
             .await
             .unwrap();
     if exam_exists.finished_at.is_some() {
-        return Err(response_to_vec(
+        return Err(response_helper::to_vec(
             http_status::UNPROCESSABLE_ENTITY,
             String::from("Exam already finished"),
-            None,
         ));
     };
     let (exchange_name, _, routing_key) = get_student_exam_queue_names(
@@ -66,9 +64,8 @@ pub async fn answer_question(
         ))
         .unwrap();
     channel.close().unwrap();
-    Ok(response_to_vec(
+    Ok(response_helper::to_vec(
         http_status::OK,
         String::from("Question answered"),
-        None,
     ))
 }

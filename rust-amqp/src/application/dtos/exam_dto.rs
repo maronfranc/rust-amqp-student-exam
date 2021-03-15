@@ -25,5 +25,5 @@ pub struct AnswerDto {
 pub struct StudentExamDto {
     pub id: i32,
     pub id_student: i32,
-    pub exam: String,
+    pub exam: ExamDto,
 }

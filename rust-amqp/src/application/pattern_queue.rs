@@ -3,7 +3,7 @@ use amiquip::{Connection, ConsumerMessage, ConsumerOptions, FieldTable, QueueDec
 use sqlx::PgPool;
 
 use crate::application::common::http_status;
-use crate::application::common::response_to_vec::response_to_vec;
+use crate::application::common::response_helper;
 use crate::application::dtos::pattern_dto::PatternDto;
 use crate::application::{patterns, reply_to};
 
@@ -35,10 +35,9 @@ async fn patterns(
         };
     }
     let error_message = format!("Pattern not implemented: {}", pattern);
-    Err(response_to_vec(
+    Err(response_helper::to_vec(
         http_status::NOT_IMPLEMENTED,
         error_message,
-        None,
     ))
 }
 

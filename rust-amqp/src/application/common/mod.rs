@@ -1,2 +1,2 @@
 pub mod http_status;
-pub mod response_to_vec;
+pub mod response_helper;
